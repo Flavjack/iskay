@@ -1,11 +1,21 @@
 Package: iskay
-Title: What the Package Does (one line, title case)
-Version: 0.0.0.9000
-Authors@R: person("First", "Last", email = "first.last@example.com", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
+Title: R-Shiny package for non-parametric data analysis
+Version: 0.0.1
+Authors@R: person("Omar", "Benites", email = "obacc07@gmail.com", role = c("aut", "cre"))
+Description: Data analysis usually involves distributions do not follow normal distribution or gaussian distributions.
+             In fact, staticians have developed different methods that not assume any distribution. For this reason, the iskay package includes
+             several non-parametric test that are nicely binded inside shiny applications. It incorporates one sample, two sample methods; one sample k-measures, independent
+             k-samples; categorical data analysis, contingency tables, correlation and a myriad of graphics.
 Depends:
-    R (>= 3.3.1)
-License: What license is it under?
+    R (>= 3.3.1),
+    tibble,
+    shiny
+Suggests:
+    testthat,
+    devtools,
+    rprojroot
+License: MIT
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 5.0.1
+Suggests: testthat

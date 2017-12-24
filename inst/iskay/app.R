@@ -1,5 +1,6 @@
 library(shiny)
 library(shinydashboard)
+library(agricolae)
 
 ui <- dashboardPage(
   skin = "yellow",
@@ -185,21 +186,37 @@ ui <- dashboardPage(
               
             
     shinydashboard::tabItem(tabName = "tfriedmanTab",
-                     h2("Friedman Test"),
-                       
-                      box(#begin box friedman
+                     #h2("Friedman Test"),
+                    
+                     fluidRow( #begin fluid row
+                       column(width = 12, 
+                        
+                      box(#begin inputs box friedman
                       title = "Friedman Test", status = "primary", solidHeader = TRUE,
                       collapsible = TRUE, width = 3,
 
-                      uiOutput("ou_resfrman"),
+                      uiOutput("ou_jugfrman"),
                       uiOutput("ou_trtfrman"),
-                      uiOutput("ou_blockfrman")
-                                      
-                   ) #end box friedman
+                      uiOutput("ou_traitfrman")#,
+                      
+                      ), #end box friedman
+                     
+                     box(#begin inputs box friedman
+                       title = "Friedman Test", status = "primary", solidHeader = TRUE,
+                       collapsible = TRUE, width = 12,
+                       
+                        DT::dataTableOutput("ou_dtfrman")
+                     )
+                    )
+               )    #end fluidrow 
             )
             
-    )
+    ),
+    br(),
+    br(),
+    br()
   )
+  
 )  
     
   server_iskay <- function(input, output, session) ({    
@@ -254,13 +271,18 @@ ui <- dashboardPage(
     
     # Friedman Test -----------------------------------------------------------
   
-    output$ou_resfrman <- renderUI({
+    output$ou_jugfrman <- renderUI({
       
       req(input$uin_fb_import)
       req(input$sel_input_sheet)
       fb_cols <- names(importData())
-      shiny::selectInput(inputId = "sel_input_resfrman", label = "Select sheet", 
-                         choices = fb_cols, selected = 1,width = NULL)
+      shiny::selectizeInput(inputId = "sel_input_judfrman", 
+                             label = "Select judges",choices = fb_cols, selected = 1, width = NULL,
+                             options = list(
+                              placeholder = 'Select judges',
+                              onInitialize = I('function() { this.setValue(""); }')
+                             )
+                        )
       
     })
     
@@ -269,37 +291,71 @@ ui <- dashboardPage(
      req(input$uin_fb_import)
      req(input$sel_input_sheet)
      fb_cols <- names(importData())
-     shiny::selectInput(inputId = "sel_input_trtfrman", label = "Select sheet", 
-                         choices = fb_cols, selected = 1,width = NULL)
+     shiny::selectizeInput(inputId = "sel_input_trtfrman", label = "Select treatments",
+                            choices = fb_cols, selected = 1, width = NULL,
+                             options = list(
+                              placeholder = 'Select treatments',
+                              onInitialize = I('function() { this.setValue(""); }')
+                            )
+                           )
+ 
+     
       
     })
     
-    output$ou_blockfrman <- renderUI({
+    output$ou_traitfrman <- renderUI({
       
       req(input$uin_fb_import)
       req(input$sel_input_sheet)
       fb_cols <- names(importData())
-      shiny::selectInput(inputId = "sel_input_blockfrman", label = "Select sheet", 
-                         choices = fb_cols, selected = 1,width = NULL)
+      shiny::selectizeInput(inputId = "sel_input_traitfrman", label = "Select trait", 
+                             choices = fb_cols, selected = 1, width = NULL,
+                             options = list(
+                               placeholder = 'Select treatments',
+                               onInitialize = I('function() { this.setValue(""); }')
+                             )
+                         )
       
     })
     
-    output$ou_DTfrman <- renderUI({
+    output$ou_dtfrman  <-  DT::renderDataTable({
       
+      shiny::req(input$uin_fb_import)
+      shiny::req(input$sel_input_judfrman)
+      shiny::req(input$sel_input_trtfrman)
+      shiny::req(input$sel_input_traitfrman)
       
-      
-      
+       fb <- importData()
+       #select judges
+       jud <- input$sel_input_judfrman
+       jug_col <- fb[, jud]
+       #select treatments
+       trt  <- input$sel_input_trtfrman
+       trt_col <- fb[, trt]
+       #select traits
+       trait <- input$sel_input_traitfrman
+       trait_col <- fb[, trait]
+       #friedman test
+       dtfrman <- friedman( judge = jug_col, trt = trt_col, evaluation = trait_col)
+       dtfrmeans  <- agr2df(dtfrman$means)
+       #print(dtfrmeans)
+       shiny::withProgress(message = "Visualizing Table...",value= 0,  #withProgress
+                          {
+                            
+                            shiny::incProgress(amount = 1/2, "loadgin results")
+                            
+                            DT::datatable( dtfrmeans, rownames = FALSE, 
+                                           #selection = list( mode= "multiple",  selected =  rownames(mtl_table)), 
+                                           options = list(scrollX = TRUE, scroller = TRUE)
+                                           #selection = list( mode = "multiple")#, 
+                                           #filter = 'bottom'#,
+                            )  
+                            
+            }
+          )
     })
     
-    
-    # sabor <- readxl::read_excel("inst/ext/friedman_test.xlsx")
-    # attach(sabor)
-    # #esta funcion no da los resultados de la prueba de friedman
-    # friedman.test(sabor$Sabor, sabor$Cola, sabor$Jueces)
-    # #install.packages("agricolae")
-    # library(agricolae)
-    # out <- friedman(sabor$Jueces, sabor$Cola, sabor$Sabor)
-  
+
     
   }) #end server_iskay
     
