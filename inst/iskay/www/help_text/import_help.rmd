@@ -1,0 +1,9 @@
+
+``Iskay`` read two types of format:
+  
+  * `Microsoft Excel` or `xlsx`.
+
+  * `Google Spreadsheet`.
+
+The file must follow a data structure called `tidy data`, which basically means one observation
+per row, and one column by variable.

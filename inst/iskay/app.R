@@ -1,6 +1,8 @@
 library(shiny)
 library(shinydashboard)
 library(agricolae)
+library(rhandsontable)
+library(iskay)
 
 ui <- dashboardPage(
   skin = "yellow",
@@ -158,28 +160,29 @@ ui <- dashboardPage(
                                 br(),
                                 
                                 # Upload ADAT UI
-                                column(
-                                  12,
-                                  offset = 1,
+                                fluidRow( #begin fluidrow for box Import data
+                                column(width =  12, offset = 1,
                                   box(title = "Upload your excel file", status = "success", solidHeader = TRUE,
                                       collapsible = FALSE,width = 10,
+                                      
+                                      
                                       shiny::fileInput(inputId = "uin_fb_import",label = "Import file",
                                                        accept = ".xlsx"),
-                                      
                                       shiny::uiOutput("ou_sheets"),
-                                      br(),
-                                      br(),
                                       actionButton("show_dlgImport", "Help", icon("question-circle"),
-                                                   style = "color: #fff; background-color: #337ab7; border-color: #2e6da4")#,
-                                      
+                                                    style = "color: #fff; background-color: #337ab7; border-color: #2e6da4"),
+                                      br(),
+                                      br(),
+                                      rHandsontableOutput("ou_fbImport", height = 400)
                                   ),
-                                  br(),
-                                  br(),
                                   br(),
                                   br()
                                   
                                 )
+                              ),#end fluidrow for box Import data
                                 
+                              br(),
+                              br()
                               )
                               
       ) , 
@@ -189,25 +192,31 @@ ui <- dashboardPage(
                      #h2("Friedman Test"),
                     
                      fluidRow( #begin fluid row
-                       column(width = 12, 
+                       column(width = 3, 
                         
                       box(#begin inputs box friedman
                       title = "Friedman Test", status = "primary", solidHeader = TRUE,
-                      collapsible = TRUE, width = 3,
+                      collapsible = TRUE, width = NULL,
 
                       uiOutput("ou_jugfrman"),
                       uiOutput("ou_trtfrman"),
-                      uiOutput("ou_traitfrman")#,
+                      uiOutput("ou_traitfrman"),
                       
-                      ), #end box friedman
-                     
-                     box(#begin inputs box friedman
-                       title = "Friedman Test", status = "primary", solidHeader = TRUE,
-                       collapsible = TRUE, width = 12,
-                       
-                        DT::dataTableOutput("ou_dtfrman")
-                     )
-                    )
+                      actionButton("show_dlgFriedman", "Help", icon("question-circle"),
+                                   style = "color: #fff; background-color: #337ab7; border-color: #2e6da4")
+                      
+                      
+                      ) #end box friedman
+                       ),
+                      column(width = 9,    
+                         box(#begin inputs box friedman
+                           title = "Results", status = "primary", solidHeader = TRUE,
+                           collapsible = TRUE, width = 12,
+                           
+                            DT::dataTableOutput("ou_dtfrman")
+                           )
+                      )
+                    
                )    #end fluidrow 
             )
             
@@ -251,21 +260,31 @@ ui <- dashboardPage(
       }
     }) 
     
-    
-    # Help dialogue Box Plots
+    # Help dialogue for Import Data
     
     observeEvent(input$show_dlgImport, {
-      showModal(modalDialog(title = "Import data",
+      showModal(modalDialog(title = strong("Import Data"),
                             
-                            "Iskay accept excel files."
-                            #easyClose = TRUE,
-                            #footer = NULL
-                              
-                            # tags$iframe(
-                            #   src = vidurl2,
-                            #   width = 560,
-                            #   height = 315
+                            includeMarkdown("www/help_text/friedman_help.rmd")
+                            
+                            
                              ))
+    })
+    # Help dialogue for Friedman Test -----------------------------------------
+    observeEvent(input$show_dlgFriedman, {
+      showModal(modalDialog(title = strong("Friedman Test"),
+                            
+                            includeMarkdown("www/help_text/friedman_help.rmd")
+                            
+                            
+      ))
+    })
+    
+    output$ou_fbImport = renderRHandsontable({
+      req(input$uin_fb_import)
+      req(input$sel_input_sheet)
+      dt <- importData()
+      rhandsontable::rhandsontable(dt)
     })
       
     
@@ -355,6 +374,8 @@ ui <- dashboardPage(
           )
     })
     
+
+
 
     
   }) #end server_iskay
