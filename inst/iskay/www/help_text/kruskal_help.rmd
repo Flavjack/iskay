@@ -1,5 +1,5 @@
-The Friedman test is a non-parametric alternative to the ANOVA with two factors where the assumption of normality is not acceptable. It is used to test if k paired samples (k>2) of size n, come from the same population or from populations having identical properties as regards the position parameter. As the context is often that of the ANOVA with two factors, we sometimes speak of the Friedman test with k treatments and n blocks.
+The Kruskal-Wallis test is often used as an alternative to the ANOVA where the assumption of normality is not acceptable. It is used to test if k samples (k>2) come from the same population or populations with identical properties as regards a position parameter (the position parameter is conceptually close to the median, but the Kruskal-Wallis test takes into account more information than just the position given by the median).
 
-Use the Friedman's test when you have k paired samples corresponding to k treatments concerning the same blocks, in order to illustrate a difference between the treatments.
+This nonparametric test is to be used when you have k independent samples, in order to determine if the samples come from a single population or if at least one sample comes from a different population than the others.
 
-`Friedman, Milton. 1937`. “The Use of Ranks to Avoid the Assumption of Normality Implicit in the Analysis of Variance.” Journal of the American Statistical Association 32 (200): 675–701.
+`W.J. Conover, 1999`. Practical Nonparametrics Statistics.

@@ -4,6 +4,8 @@ library(agricolae)
 library(rhandsontable)
 library(iskay)
 library(dplyr)
+library(exactRankTests)
+library(broom)
 
 ui <- dashboardPage(
   skin = "yellow",
@@ -65,7 +67,7 @@ ui <- dashboardPage(
                      menuItem("Non-Parametric Test", icon = icon("th-list"),
                          
                               menuItem("One Sample",
-                                       menuSubItem("Wilconxon", tabName = "twilconxonTab", icon = icon("table"))
+                                       menuSubItem("Wilcoxon", tabName = "twilcoxon1Tab", icon = icon("table"))
                                        #menuSubItem("Clone list", tabName = "generateList", icon = icon("list")),
                                        #menuSubItem("Family list", tabName = "createList", icon = icon("list-alt")) ,
                                        #menuSubItem("Parental list", tabName = "parentList", icon = icon("list-alt")),
@@ -73,7 +75,9 @@ ui <- dashboardPage(
                               ),
                               
                               menuItem("Two Sample",
-                                       menuSubItem("Man-Whitney", tabName = "tmanwithneyTab", icon = icon("file"))
+                                       menuSubItem("Man-Whitney", tabName = "tmanwithneyTab", icon = icon("file")),
+                                       menuSubItem("Wilcoxon", tabName = "twilcoxon2Tab", icon = icon("table"))
+                                       
                                        #menuSubItem("Open fieldbook", tabName = "openFieldbook", icon = icon("file-o")),
                                        #menuSubItem("Check fieldbook", tabName = "checkFieldbook", icon = icon("eraser")),
                                        #menuSubItem("Data transformation", tabName = "singleAnalysisTrans", icon = icon("file-text-o"))
@@ -188,6 +192,44 @@ ui <- dashboardPage(
                               
       ) , 
 
+      #tab for Wilcoxon test   -----------------------------     
+      
+      shinydashboard::tabItem(tabName = "twilcoxon2Tab",
+                              #h2("Friedman Test"),
+                              
+                              fluidRow( #begin fluid row
+                                column(width = 3, 
+                                       
+                                       box(#begin inputs box friedman
+                                         title = "Wilcoxon Test", status = "primary", solidHeader = TRUE,
+                                         collapsible = TRUE, width = NULL,
+                                         
+                                         uiOutput("ou_Xwilcox2"),
+                                         uiOutput("ou_Ywilcox2"),
+                                         shiny::selectInput(inputId = "sel_input_wilcox2Hyp", label = "Hypothesis",
+                                                            choices = list(`Two-sided` = "t", `Greater than`= "g", `Less than` = "l"), 
+                                                            selected = 1),
+                                         
+                                         shiny::numericInput(inputId = "sel_input_wilcox2Mu", label = "Enter mean value",
+                                                             value = 0),
+                                         
+                                         actionButton("show_dlgWilcox2", "Help", icon("question-circle"),
+                                                      style = "color: #fff; background-color: #337ab7; border-color: #2e6da4")
+                                       ) #end box friedman
+                                ),
+                                column(width = 9,    
+                                       box(#begin inputs box wilcox2
+                                         title = "Results", status = "primary", solidHeader = TRUE,
+                                         collapsible = TRUE, width = 12,
+                                         
+                                         DT::dataTableOutput("ou_dtwilcox2")
+                                       )
+                                )
+                                
+                              )    #end fluidrow 
+      ), #end tab Wilcoxon Two-paired test  
+      
+      
   #tab for Mann-Whitney test   -----------------------------     
   
   shinydashboard::tabItem(tabName = "tmanwithneyTab",
@@ -200,11 +242,12 @@ ui <- dashboardPage(
                                      title = "Mann-Whitney Test", status = "primary", solidHeader = TRUE,
                                      collapsible = TRUE, width = NULL,
                                      
-                                     uiOutput("ou_trtmanw"),
-                                     uiOutput("ou_traitmanw"),
+                                     uiOutput("ou_Xmanw"),
+                                     uiOutput("ou_Ymanw"),
                                      shiny::selectInput(inputId = "sel_input_manwHyp", label = "Hypothesis",
-                                                        choices = c("Two-sided", "Less than", "Greater than"), 
+                                                        choices = list(`Two-sided` = "t", `Greater than`= "g", `Less than` = "l"), 
                                                         selected = 1),
+                                     
                                      shiny::numericInput(inputId = "sel_input_manwMu", label = "Enter mean value",
                                                          value = 0),
                                     
@@ -347,65 +390,157 @@ ui <- dashboardPage(
       rhandsontable::rhandsontable(dt)
     })
     
+    #-----------------------------
     
-    # Mann-Whitney Test -------------------------------------------------------
+    # Wilconxon two samples paired Test -------------------------------------------------------
     
-    output$ou_trtmanw <- renderUI({
+    output$ou_Xwilcox2 <- renderUI({
       
       req(input$uin_fb_import)
       req(input$sel_input_sheet)
-      fb_cols <- names(importData())
-      shiny::selectizeInput(inputId = "sel_input_trtmanw", label = "Select treatments",
+      fb_cols <- names(importData())  
+      shiny::selectizeInput(inputId = "sel_input_Xwilcox2", label = "Select variable X", 
                             choices = fb_cols, selected = 1, width = NULL,
                             options = list(
-                              placeholder = 'Select treatments',
-                              onInitialize = I('function() { this.setValue(""); }')
-                            )
-         )
-      
-    })
-    
-    output$ou_traitmanw <- renderUI({
-      
-      req(input$uin_fb_import)
-      req(input$sel_input_sheet)
-      fb_cols <- names(importData())
-      shiny::selectizeInput(inputId = "sel_input_traitmanw", label = "Select trait", 
-                            choices = fb_cols, selected = 1, width = NULL,
-                            options = list(
-                              placeholder = 'Select treatments',
+                              placeholder = 'Select variable',
                               onInitialize = I('function() { this.setValue(""); }')
                             )
       )
       
     })
     
-    # Friedman table results ---------------------------
+    output$ou_Ywilcox2 <- renderUI({
+      
+      req(input$uin_fb_import)
+      req(input$sel_input_sheet)
+      fb_cols <- names(importData())
+      shiny::selectizeInput(inputId = "sel_input_Ywilcox2", label = "Select variable Y", 
+                            choices = fb_cols, selected = 1, width = NULL,
+                            options = list(
+                              placeholder = 'Select variable',
+                              onInitialize = I('function() { this.setValue(""); }')
+                            )
+      )
+      
+    })
+    
+    # Wilcox two-paired sample table results ---------------------------
+    
+    output$ou_dtwilcox2  <-  DT::renderDataTable({
+      
+      shiny::req(input$uin_fb_import)
+      shiny::req(input$sel_input_Xwilcox2)
+      shiny::req(input$sel_input_Ywilcox2)
+      
+      fb <- importData()
+      x  <- input$sel_input_Xwilcox2
+      x_col <- fb[, x] %>% as.vector()
+      str(x_col)
+      #select traits
+      y <- input$sel_input_Ywilcox2
+      y_col <- fb[, y] %>% as.vector()
+      
+      wilcoxHyp <- input$sel_input_wilcox2Hyp
+      wilcoxMu <- input$sel_input_wilcox2Mu
+     
+      outwilcox <- wilcox.exact(y_col ~ x_col, mu=wilcoxMu, alternative = wilcoxHyp, paired=TRUE)
+      dt <- broom::glance(outwilcox)
+      
+      shiny::withProgress(message = "Visualizing Table...",value= 0,  #withProgress
+                          {
+                            
+                            shiny::incProgress(amount = 1/2, "loading results")
+                            
+                            DT::datatable( dt, rownames = FALSE, 
+                                           #selection = list( mode= "multiple",  selected =  rownames(mtl_table)), 
+                                           options = list(scrollX = TRUE, scroller = TRUE)
+                                           #selection = list( mode = "multiple")#, 
+                                           #filter = 'bottom'#,
+                            )  
+                            
+                          }
+      )
+    })
+    
+    # Help dialogue for Wilcoxon two-paired Test -----------------------------------------
+    
+    observeEvent(input$show_dlgWilcox2, {
+      showModal(modalDialog(title = strong("Wilcoxon Two-Paired Test"),
+                            
+                            includeMarkdown("www/help_text/wilcox2_help.rmd")
+                            
+                            
+      ))
+    })
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    #--------------------------
+    
+    # Mann-Whitney Test -------------------------------------------------------
+    
+    output$ou_Xmanw <- renderUI({
+      
+      req(input$uin_fb_import)
+      req(input$sel_input_sheet)
+      fb_cols <- names(importData())
+      shiny::selectizeInput(inputId = "sel_input_Xmanw", label = "Select variable X", 
+                            choices = fb_cols, selected = 1, width = NULL,
+                            options = list(
+                              placeholder = 'Select variable',
+                              onInitialize = I('function() { this.setValue(""); }')
+                            )
+      )
+      
+    })
+    
+    output$ou_Ymanw <- renderUI({
+      
+      req(input$uin_fb_import)
+      req(input$sel_input_sheet)
+      fb_cols <- names(importData())
+      shiny::selectizeInput(inputId = "sel_input_Ymanw", label = "Select variable Y", 
+                            choices = fb_cols, selected = 1, width = NULL,
+                            options = list(
+                              placeholder = 'Select variable',
+                              onInitialize = I('function() { this.setValue(""); }')
+                            )
+      )
+      
+    })
+    
+    # Mann-Whitney table results ---------------------------
     
     output$ou_dtmanw  <-  DT::renderDataTable({
       
       shiny::req(input$uin_fb_import)
-      
-      shiny::req(input$sel_input_trtmanw)
-      shiny::req(input$sel_input_traitmanw)
-      
+      shiny::req(input$sel_input_Xmanw)
+      shiny::req(input$sel_input_Ymanw)
       
       fb <- importData()
-      trt  <- input$sel_input_trtmanw
-      trt_col <- fb[, trt]
+      x  <- input$sel_input_Xmanw
+      x_col <- fb[, x]
+      str(x_col)
       #select traits
-      trait <- input$sel_input_traitmanw
-      trait_col <- fb[, trait]
+      y <- input$sel_input_Ymanw
+      y_col <- fb[, y]
+      
+      manwHyp <- input$sel_input_manwHyp
+      
+      manwMu <- input$sel_input_manwMu
+      
       #mann-whitney test
-      outmanw <- wilcox.exact(trt_col , trait_col, alternative="t", mu=0)
-      
-      dtmanw  <- agr2df(outmanw$means)
-      #print(dtmanw)
-      groupmanw <- rename_tables(outmanw$groups, c("Treatment", "Rank", "Groups")) %>% 
-        select_(-2) #remoe sum of ranks columns  
-      #lef join by trt for merging groups column
-      dt <- dplyr::left_join(dtmanw, groupmanw, by="Treatment")
-      
+      outmanw <- wilcox.exact(x =  x_col, y = y_col, alternative = manwHyp, mu=manwMu)
+      dt <- broom::glance(outmanw)
+            
       shiny::withProgress(message = "Visualizing Table...",value= 0,  #withProgress
                           {
                             
@@ -432,12 +567,6 @@ ui <- dashboardPage(
                             
       ))
     })
-    
-    
-    
-    
-    
-    
     
       
     # Friedman Test -----------------------------------------------------------
