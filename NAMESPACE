@@ -2,5 +2,7 @@
 
 export(agr2df)
 export(iskayapp)
+export(rename_tables)
+importFrom(data.table,setnames)
 importFrom(shiny,runApp)
 importFrom(tibble,data_frame)

@@ -4,10 +4,12 @@
 \alias{agr2df}
 \title{Converter for agricolae's table to data.frame}
 \usage{
-agr2df(adt)
+agr2df(adt, test = "fridman")
 }
 \arguments{
 \item{adt}{agricolae's data table}
+
+\item{test}{statistical test that return an specific table. It works with \code{fridman}, \code{kruskal},...}
 }
 \description{
 Converter for agricolae's table to data.frame
