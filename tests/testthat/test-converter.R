@@ -38,3 +38,26 @@ test_that("converter test kruskal", {
   
 })
 
+
+
+test_that("converter test Jonckheere-Tepstra", {
+  fp <- rprojroot::find_testthat_root_file("test_data", "Jonkcherre_NaCl.xlsx")
+  datos <- readxl::read_excel(fp)
+  outjonck <- clinfun::jonckheere.test(x=datos$dataset.Juicio, g=datos$dataset.NaCl, alternative = "in")
+  adt <- broom::glance(outjonck)
+  expect_equivalent(ncol(adt), 4)
+  expect_equivalent(nrow(adt), 1)
+  
+})
+
+test_that("converter test Jonckheere-Tepstra", {
+  fp <- rprojroot::find_testthat_root_file("test_data", "medianTest_data.xlsx")
+  datos <- readxl::read_excel(fp)
+  
+  comparison<- agricolae::Median.test(y = datos$Likert, trt = datos$Speaker)
+  dtstat <- cbind(comparison$parameters,comparison$statistics)
+  pairc <- pairwiseMedianTest(x = datos$Likert,g = datos$Speaker, method = "fdr")
+  
+  expect_equivalent(ncol(dtstat), 6)
+
+})

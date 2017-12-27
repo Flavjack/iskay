@@ -6,6 +6,8 @@ library(iskay)
 library(dplyr)
 library(exactRankTests)
 library(broom)
+library(clinfun)
+
 
 ui <- dashboardPage(
   skin = "yellow",
@@ -93,8 +95,8 @@ ui <- dashboardPage(
                               
                               menuItem("Independent K-samples ",
                                        menuSubItem("Kruskall-Waliis Test", tabName = "tkruskalTab", icon = icon("file")),
-                                       menuSubItem("Median Test", tabName = "tmedianTab", icon = icon("file-o")),
-                                       menuSubItem("Jonckheere Test", tabName = "tjonckTab", icon = icon("file-o"))
+                                       menuSubItem("Median Test", tabName = "tmedTab", icon = icon("file-o")),
+                                       menuSubItem("Jonckheere-T Test", tabName = "tjonckTab", icon = icon("file-o"))
                                        #menuSubItem("Check fieldbook", tabName = "checkFieldbook", icon = icon("eraser")),
                                        
                               )
@@ -195,7 +197,7 @@ ui <- dashboardPage(
       #tab for Wilcoxon test   -----------------------------     
       
       shinydashboard::tabItem(tabName = "twilcoxon2Tab",
-                              #h2("Friedman Test"),
+                              #h2("wilcoxon Test"),
                               
                               fluidRow( #begin fluid row
                                 column(width = 3, 
@@ -233,7 +235,7 @@ ui <- dashboardPage(
   #tab for Mann-Whitney test   -----------------------------     
   
   shinydashboard::tabItem(tabName = "tmanwithneyTab",
-                          #h2("Friedman Test"),
+                          #h2("mann whitney Test"),
                           
                           fluidRow( #begin fluid row
                             column(width = 3, 
@@ -301,7 +303,7 @@ ui <- dashboardPage(
             
     # tab for Kruskal test -----------------------------------       
     shinydashboard::tabItem(tabName = "tkruskalTab",
-                            #h2("Friedman Test"),
+                            #h2("Kruskall Test"),
                             
                             fluidRow( #begin fluid row
                               column(width = 3, 
@@ -327,10 +329,91 @@ ui <- dashboardPage(
                               )
                               
                             )    #end fluidrow 
-    ) #end tab Kruskal wallis test
+    ), #end tab Kruskal wallis test
+  
+  #-----------
+  
+  # tab for Median test -----------------------------------       
+  shinydashboard::tabItem(tabName = "tmedTab",
+                          #h2("med"),
+                          
+                          fluidRow( #begin fluid row
+                            column(width = 3, 
+                                   
+                                   box(#begin inputs box med
+                                     title = "Median Test", status = "primary", solidHeader = TRUE,
+                                     collapsible = TRUE, width = NULL,
+                                     
+                                     uiOutput("ou_trtmed"),
+                                     uiOutput("ou_traitmed"),
+                                     
+                                     shiny::selectInput(inputId = "sel_input_medHyp", label = "Hypothesis",
+                                                        choices = list(`Two-sided` = "two.sided", 
+                                                                       `Increase than`= "increasing", 
+                                                                       `Decrease than` = "decreasing"), 
+                                                        selected = 1),
+                                     
+                                     actionButton("show_dlgmed", "Help", icon("question-circle"),
+                                                  style = "color: #fff; background-color: #337ab7; border-color: #2e6da4")
+                                   ) #end box med
+                            ),
+                            column(width = 9,    
+                                   box(#begin inputs box med
+                                     title = "Results", status = "primary", solidHeader = TRUE,
+                                     collapsible = TRUE, width = 12,
+                                     
+                                     DT::dataTableOutput("ou_dtmed")
+                                   )
+                            )
+                            
+                          )    #end fluidrow 
+  ), #end tab med test
+  
+  
+
+  #-------------
+  
     
-    
-    
+  
+  # tab for Jonckherre-Tepstra test -----------------------------------       
+  shinydashboard::tabItem(tabName = "tjonckTab",
+                          #h2("JT Test"),
+                          
+                          fluidRow( #begin fluid row
+                            column(width = 3, 
+                                   
+                                   box(#begin inputs box kruskal
+                                     title = "Jonckheere-Tepstra Test", status = "primary", solidHeader = TRUE,
+                                     collapsible = TRUE, width = NULL,
+                                     
+                                     uiOutput("ou_trtjonck"),
+                                     uiOutput("ou_traitjonck"),
+                                     
+                                     shiny::selectInput(inputId = "sel_input_jonckHyp", label = "Hypothesis",
+                                                        choices = list(`Two-sided` = "two.sided", 
+                                                                       `Increase than`= "increasing", 
+                                                                       `Decrease than` = "decreasing"), 
+                                                        selected = 1),
+                                     
+                                     actionButton("show_dlgjonck", "Help", icon("question-circle"),
+                                                  style = "color: #fff; background-color: #337ab7; border-color: #2e6da4")
+                                   ) #end box jonck
+                            ),
+                            column(width = 9,    
+                                   box(#begin inputs box jonck
+                                     title = "Results", status = "primary", solidHeader = TRUE,
+                                     collapsible = TRUE, width = 12,
+                                     
+                                     DT::dataTableOutput("ou_dtjonck")
+                                   )
+                            )
+                            
+                          )    #end fluidrow 
+  ) #end tab jonck test
+  
+  
+  
+  ##########################3  
     
     ),
     br(),
@@ -390,6 +473,11 @@ ui <- dashboardPage(
       rhandsontable::rhandsontable(dt)
     })
     
+    
+    
+    
+    
+    
     #-----------------------------
     
     # Wilconxon two samples paired Test -------------------------------------------------------
@@ -434,11 +522,11 @@ ui <- dashboardPage(
       
       fb <- importData()
       x  <- input$sel_input_Xwilcox2
-      x_col <- fb[, x] %>% as.vector()
-      str(x_col)
+      x_col <- fb[, x] %>% pull()
+     
       #select traits
       y <- input$sel_input_Ywilcox2
-      y_col <- fb[, y] %>% as.vector()
+      y_col <- fb[, y] %>% pull()
       
       wilcoxHyp <- input$sel_input_wilcox2Hyp
       wilcoxMu <- input$sel_input_wilcox2Mu
@@ -472,15 +560,6 @@ ui <- dashboardPage(
                             
       ))
     })
-    
-    
-    
-    
-    
-    
-    
-    
-    
     
     
     #--------------------------
@@ -763,6 +842,176 @@ ui <- dashboardPage(
                             
       ))
     })
+    
+    # Median Test
+    
+    # Kruskal wallis -----------------------------------
+    
+    output$ou_trtkru <- renderUI({
+      
+      req(input$uin_fb_import)
+      req(input$sel_input_sheet)
+      fb_cols <- names(importData())
+      shiny::selectizeInput(inputId = "sel_input_trtkru", label = "Select treatments",
+                            choices = fb_cols, selected = 1, width = NULL,
+                            options = list(
+                              placeholder = 'Select treatments',
+                              onInitialize = I('function() { this.setValue(""); }')
+                            )
+      )
+      
+      
+      
+    })
+    
+    output$ou_traitkru <- renderUI({
+      
+      req(input$uin_fb_import)
+      req(input$sel_input_sheet)
+      fb_cols <- names(importData())
+      shiny::selectizeInput(inputId = "sel_input_traitkru", label = "Select trait", 
+                            choices = fb_cols, selected = 1, width = NULL,
+                            options = list(
+                              placeholder = 'Select treatments',
+                              onInitialize = I('function() { this.setValue(""); }')
+                            )
+      )
+      
+    })
+    
+    # Kruskall-Wallis table results -----------------
+    
+    output$ou_dtkru  <-  DT::renderDataTable({
+      
+      shiny::req(input$uin_fb_import)
+      shiny::req(input$sel_input_trtmed)
+      shiny::req(input$sel_input_traitmed)
+      
+      fb <- importData()
+      #select treatments
+      trt  <- input$sel_input_trtmed
+      trt_col <- fb[, trt]
+      #select traits
+      trait <- input$sel_input_traitmed
+      trait_col <- fb[, trait]
+      
+      #Test
+      outmed <- Median.test(y , x, console=TRUE)
+      
+      outmed <- Median.test(datos$Likert, datos$Speaker ,console=TRUE)
+      outmed <- rcompanion::pairwiseMedianTest(x = datos$Likert,g = datos$Speaker, method = "fdr")
+      groupmed <- rcompanion::cldList(p.adjust ~ Comparison,
+                                      data = outmed, threshold = 0.05) %>% select(-3)
+     
+      
+      shiny::withProgress(message = "Visualizing Table...",value= 0,  #withProgress
+                          {
+                            shiny::incProgress(amount = 1/2, "loading results")
+                            
+                            DT::datatable( dt, rownames = FALSE, 
+                                             options = list(scrollX = TRUE, scroller = TRUE)
+                                         
+                            )  
+                            
+                          }
+      )
+    })
+    
+    # Help dialogue for Median Test -----------------------------------------
+    
+    observeEvent(input$show_dlgMedian, {
+      showModal(modalDialog(title = strong("Median Test"),
+                            
+                            includeMarkdown("www/help_text/median_help.rmd")
+                            
+                            
+      ))
+    })
+    
+    
+    
+    
+    #####
+    
+    # Jonckheere-Tepstra -------------------------------
+    
+    output$ou_trtjonck <- renderUI({
+      
+      req(input$uin_fb_import)
+      req(input$sel_input_sheet)
+      fb_cols <- names(importData())
+      shiny::selectizeInput(inputId = "sel_input_trtjonck", label = "Select treatments",
+                            choices = fb_cols, selected = 1, width = NULL,
+                            options = list(
+                              placeholder = 'Select treatments',
+                              onInitialize = I('function() { this.setValue(""); }')
+                            )
+      )
+      
+      
+      
+    })
+    
+    output$ou_traitjonck <- renderUI({
+      
+      req(input$uin_fb_import)
+      req(input$sel_input_sheet)
+      fb_cols <- names(importData())
+      shiny::selectizeInput(inputId = "sel_input_traitjonck", label = "Select trait", 
+                            choices = fb_cols, selected = 1, width = NULL,
+                            options = list(
+                              placeholder = 'Select treatments',
+                              onInitialize = I('function() { this.setValue(""); }')
+                            )
+      )
+      
+    })
+    
+    # J-T table results -----------------
+    
+    output$ou_dtjonck  <-  DT::renderDataTable({
+      
+      shiny::req(input$uin_fb_import)
+      shiny::req(input$sel_input_trtjonck)
+      shiny::req(input$sel_input_traitjonck)
+      
+      fb <- importData()
+
+      #select treatments
+      trt  <- input$sel_input_trtjonck
+      trt_col <- fb[, trt] %>% pull()
+      #select traits
+      trait <- input$sel_input_traitjonck
+      trait_col <- fb[, trait] %>% pull()
+      #hypothesis
+      jonckHyp <- input$sel_input_jonckHyp
+      #J-T test
+      outjonck <- jonckheere.test(x=trait_col, g=trt_col, alternative = jonckHyp)
+      dt <- broom::glance(outjonck)
+
+      shiny::withProgress(message = "Visualizing Table...",value= 0,  #withProgress
+                          {
+                            shiny::incProgress(amount = 1/2, "loading results...")
+                            DT::datatable( dt, rownames = FALSE, 
+                                           options = list(scrollX = TRUE, scroller = TRUE)
+                            )  
+                            
+                          }
+      )
+    })
+    
+    # Help dialogue for J-T Test -----------------------------------------
+    
+    observeEvent(input$show_dlgjonck, {
+      showModal(modalDialog(title = strong("Jonckheere Test"),
+                            
+                            includeMarkdown("www/help_text/jonck_help.rmd")
+                            
+                            
+      ))
+    })
+    
+    
       
   }) #end server_iskay
     
