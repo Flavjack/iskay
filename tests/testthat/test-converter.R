@@ -1,7 +1,7 @@
 library(iskay)
 context("Converter test")
 
-test_that("converter test fridman", {
+test_that("converter test friedman", {
   #library(agricolae)
   #data("grass")
   fp <- rprojroot::find_testthat_root_file("test_data", "grass.csv")
@@ -50,14 +50,6 @@ test_that("converter test Jonckheere-Tepstra", {
   
 })
 
-test_that("converter test Jonckheere-Tepstra", {
-  fp <- rprojroot::find_testthat_root_file("test_data", "medianTest_data.xlsx")
-  datos <- readxl::read_excel(fp)
-  
-  comparison<- agricolae::Median.test(y = datos$Likert, trt = datos$Speaker)
-  dtstat <- cbind(comparison$parameters,comparison$statistics)
-  pairc <- pairwiseMedianTest(x = datos$Likert,g = datos$Speaker, method = "fdr")
-  
-  expect_equivalent(ncol(dtstat), 6)
+# test_that("converter test Median", {
 
-})
+# })

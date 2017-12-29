@@ -35,6 +35,12 @@ agr2df <- function(adt, test= "fridman"){
    df <- tibble::data_frame(Treatment = trt, Rank= rk, Mean = y_mean, StDev = std, Rep= rep, Min = min, Max = max)
   }
   
+  # if(test=="median"){
+  # }
+  
+  
+  
+  
    return(df)
 }
   

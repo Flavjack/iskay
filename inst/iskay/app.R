@@ -472,14 +472,12 @@ ui <- dashboardPage(
       dt <- importData()
       rhandsontable::rhandsontable(dt)
     })
-    
-    
-    
-    
-    
+
     
     #-----------------------------
     
+
+    #-----------------------------------------
     # Wilconxon two samples paired Test -------------------------------------------------------
     
     output$ou_Xwilcox2 <- renderUI({
@@ -530,9 +528,11 @@ ui <- dashboardPage(
       
       wilcoxHyp <- input$sel_input_wilcox2Hyp
       wilcoxMu <- input$sel_input_wilcox2Mu
-     
-      outwilcox <- wilcox.exact(y_col ~ x_col, mu=wilcoxMu, alternative = wilcoxHyp, paired=TRUE)
-      dt <- broom::glance(outwilcox)
+    
+      # outwilcox <- wilcox.exact(y_col ~ x_col, mu=wilcoxMu, alternative = wilcoxHyp, paired=TRUE)
+      # dt <- broom::glance(outwilcox)
+      out <- test_analysis(x= x_col, y = y_col, hyp = wilcoxHyp,param = wilcoxMu, test = "wilcoxon")
+      dt <- out$statistic
       
       shiny::withProgress(message = "Visualizing Table...",value= 0,  #withProgress
                           {
@@ -613,13 +613,11 @@ ui <- dashboardPage(
       y_col <- fb[, y]
       
       manwHyp <- input$sel_input_manwHyp
-      
       manwMu <- input$sel_input_manwMu
       
-      #mann-whitney test
-      outmanw <- wilcox.exact(x =  x_col, y = y_col, alternative = manwHyp, mu=manwMu)
-      dt <- broom::glance(outmanw)
-            
+      out <- test_analysis(x= trt_col, y = trait_col, hyp = manwHyp,param = manwMu, test = "manwithney")
+      dt <- out$statistic
+    
       shiny::withProgress(message = "Visualizing Table...",value= 0,  #withProgress
                           {
                             
@@ -717,22 +715,30 @@ ui <- dashboardPage(
        trait <- input$sel_input_traitfrman
        trait_col <- fb[, trait]
        #friedman test
-       outfrim <- friedman( judge = jug_col, trt = trt_col, evaluation = trait_col)
-       dtfrimeans  <- agr2df(outfrim$means)
-       #print(dtfrmeans)
-       groupfri <- rename_tables(outfrim$groups, c("Treatment", "Rank", "Groups")) %>% 
-                   select_(-2) #remoe sum of ranks columns  
-       #lef join by trt for merging groups column
-       dt <- dplyr::left_join(dtfrimeans, groupfri, by="Treatment")
+       
+       out <- test_analysis(x= trt_col, y = trait_col , jud = jug_col, test = "friedman")
+       dt <-  out$dt
        
        shiny::withProgress(message = "Visualizing Table...",value= 0,  #withProgress
-                          {
+                      {
                             
-                            shiny::incProgress(amount = 1/2, "loadgin results")
+                      shiny::incProgress(amount = 1/2, "loadgin results")
+                      var_sheet <- paste("friedman",trait, sep="")
                             
-                            DT::datatable( dt, rownames = FALSE, 
-                                           #selection = list( mode= "multiple",  selected =  rownames(mtl_table)), 
-                                           options = list(scrollX = TRUE, scroller = TRUE)
+                      DT::datatable( dt, rownames = FALSE, 
+                                         filter = 'top',
+                                         extensions = c('Buttons', 'Scroller'),
+                                         #selection = list( mode= "multiple",  selected =  rownames(mtl_table)), 
+                                         options = list(scrollX = TRUE, 
+                                                          scroller = TRUE,
+                                                          dom = 'Bfrtip',
+                                                          buttons = list(
+                                                            'copy',
+                                                            list(extend = 'csv',   filename = var_sheet),
+                                                            list(extend = 'excel', filename = var_sheet)
+                                                          )#,
+                                                          
+                                                          )
                                            #selection = list( mode = "multiple")#, 
                                            #filter = 'bottom'#,
                             )  
@@ -796,9 +802,6 @@ ui <- dashboardPage(
       shiny::req(input$sel_input_traitkru)
       
       fb <- importData()
-      #select judges
-      #jud <- input$sel_input_judkru
-      #jug_col <- fb[, jud]
       #select treatments
       trt  <- input$sel_input_trtkru
       trt_col <- fb[, trt]
@@ -807,15 +810,10 @@ ui <- dashboardPage(
       trait_col <- fb[, trait]
       
       #kruskall-wallis test
-      outkru <- kruskal(y = trait_col, trt = trt_col, group = TRUE,alpha = 0.05)
-      
-      dtkrumeans  <- agr2df(outkru$means,test = "kruskal")
-      #print(dtfrmeans)
-      groupkru <- rename_tables(outkru$groups, c("Treatment", "Means", "Groups")) %>% 
-                  select_(-2) #remove sum of ranks columns  
-      #lef join by trt for merging groups column
-      dt <- dplyr::left_join(dtkrumeans, groupkru, by="Treatment")
-      
+      #outkru <- kruskal(y = trait_col, trt = trt_col, group = TRUE,alpha = 0.05)
+      out <- test_analysis(x= trt_col, y = trait_col, test = "kruskal")
+      dt <- out$dt 
+       
       shiny::withProgress(message = "Visualizing Table...",value= 0,  #withProgress
                           {
                             
@@ -832,7 +830,7 @@ ui <- dashboardPage(
       )
     })
     
-    # Help dialogue for Kruskal Test -----------------------------------------
+    # Help dialogue for Kruskal Test -------------------
     
     observeEvent(input$show_dlgKruskal, {
       showModal(modalDialog(title = strong("Kruskal Test"),
@@ -843,16 +841,17 @@ ui <- dashboardPage(
       ))
     })
     
-    # Median Test
     
-    # Kruskal wallis -----------------------------------
     
-    output$ou_trtkru <- renderUI({
+    # Median Test ---------------------------------------------------------
+    
+    # treatment input for median test
+    output$ou_trtmed <- renderUI({
       
       req(input$uin_fb_import)
       req(input$sel_input_sheet)
       fb_cols <- names(importData())
-      shiny::selectizeInput(inputId = "sel_input_trtkru", label = "Select treatments",
+      shiny::selectizeInput(inputId = "sel_input_trtmed", label = "Select treatments",
                             choices = fb_cols, selected = 1, width = NULL,
                             options = list(
                               placeholder = 'Select treatments',
@@ -864,12 +863,13 @@ ui <- dashboardPage(
       
     })
     
-    output$ou_traitkru <- renderUI({
+    # trait input for median test
+    output$ou_traitmed <- renderUI({
       
       req(input$uin_fb_import)
       req(input$sel_input_sheet)
       fb_cols <- names(importData())
-      shiny::selectizeInput(inputId = "sel_input_traitkru", label = "Select trait", 
+      shiny::selectizeInput(inputId = "sel_input_traitmed", label = "Select trait", 
                             choices = fb_cols, selected = 1, width = NULL,
                             options = list(
                               placeholder = 'Select treatments',
@@ -879,9 +879,9 @@ ui <- dashboardPage(
       
     })
     
-    # Kruskall-Wallis table results -----------------
+    # Median table results -----------------
     
-    output$ou_dtkru  <-  DT::renderDataTable({
+    output$ou_dtmed  <-  DT::renderDataTable({
       
       shiny::req(input$uin_fb_import)
       shiny::req(input$sel_input_trtmed)
@@ -896,14 +896,9 @@ ui <- dashboardPage(
       trait_col <- fb[, trait]
       
       #Test
-      outmed <- Median.test(y , x, console=TRUE)
-      
-      outmed <- Median.test(datos$Likert, datos$Speaker ,console=TRUE)
-      outmed <- rcompanion::pairwiseMedianTest(x = datos$Likert,g = datos$Speaker, method = "fdr")
-      groupmed <- rcompanion::cldList(p.adjust ~ Comparison,
-                                      data = outmed, threshold = 0.05) %>% select(-3)
-     
-      
+      out <- test_analysis(x= trt_col, y = trait_col, test = "median")
+      dt <- out$dt
+  
       shiny::withProgress(message = "Visualizing Table...",value= 0,  #withProgress
                           {
                             shiny::incProgress(amount = 1/2, "loading results")
@@ -927,9 +922,6 @@ ui <- dashboardPage(
                             
       ))
     })
-    
-    
-    
     
     #####
     
@@ -986,9 +978,9 @@ ui <- dashboardPage(
       #hypothesis
       jonckHyp <- input$sel_input_jonckHyp
       #J-T test
-      outjonck <- jonckheere.test(x=trait_col, g=trt_col, alternative = jonckHyp)
-      dt <- broom::glance(outjonck)
-
+      out <- test_analysis(x= trt_col, y = trait_col, hyp = jonckHyp, test = "jonckheere")
+      dt <- out$statistic
+     
       shiny::withProgress(message = "Visualizing Table...",value= 0,  #withProgress
                           {
                             shiny::incProgress(amount = 1/2, "loading results...")
@@ -1010,7 +1002,6 @@ ui <- dashboardPage(
                             
       ))
     })
-    
     
       
   }) #end server_iskay
