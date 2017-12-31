@@ -1,7 +1,7 @@
 library(iskay)
 context("Test for test_analysis")
 
-test_that("converter test friedman", {
+test_that("test analysis friedman", {
   fp <- rprojroot::find_testthat_root_file("test_data", "grass.csv")
   datos <- read.csv(fp)
   out <- test_analysis(x= datos$trt, y =datos$evaluation , jud = datos$judge, test = "friedman")
@@ -11,7 +11,7 @@ test_that("converter test friedman", {
 })
 
 
-test_that("converter test kruskal", {
+test_that("test analysis kruskal", {
   fp <- rprojroot::find_testthat_root_file("test_data", "kruskal_corn.csv")
   datos <- read.csv(fp)
   
@@ -22,9 +22,21 @@ test_that("converter test kruskal", {
   
 })
 
+test_that("test analysis median", {
+  
+  fp <- rprojroot::find_testthat_root_file("test_data", "medianTest_data.xlsx")
+  datos <- readxl::read_excel(fp) %>% as.data.frame(stringsAsFactors=FALSE)
+  
+  as <- test_analysis(x= datos[,"Speaker"], y = datos[,"Likert"], test = "median")
+  adt <- as$dt
+  expect_equivalent(ncol(adt), 5)
+  expect_equivalent(nrow(adt), 3)
+  
+})
 
 
-test_that("converter test Jonckheere-Tepstra", {
+
+test_that("test analysis Jonckheere-Tepstra", {
   fp <- rprojroot::find_testthat_root_file("test_data", "Jonkcherre_NaCl.xlsx")
   datos <- readxl::read_excel(fp)
   

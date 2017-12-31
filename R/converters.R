@@ -35,8 +35,21 @@ agr2df <- function(adt, test= "fridman"){
    df <- tibble::data_frame(Treatment = trt, Rank= rk, Mean = y_mean, StDev = std, Rep= rep, Min = min, Max = max)
   }
   
-  # if(test=="median"){
-  # }
+  if(test=="durbin"){
+  
+    new_names <- c("trt", names(adt))
+    trt <- rownames(adt)
+    y_mean <- as.vector(adt[,1])
+    
+    std <- adt$std
+    rep <- adt$r
+    min <- adt$Min
+    max <- adt$Max
+    
+    df <- tibble::data_frame(Treatment = trt, Mean = y_mean, StDev = std, Rep= rep, Min = min, Max = max)
+      
+    
+  }
   
   
   

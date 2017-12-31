@@ -8,7 +8,6 @@ library(exactRankTests)
 library(broom)
 library(clinfun)
 
-
 ui <- dashboardPage(
   skin = "yellow",
   dashboardHeader(title = "HIDAP", titleWidth = "250px",
@@ -61,9 +60,7 @@ ui <- dashboardPage(
                          
                      menuItem("Import Data", icon = icon("table"),
                               menuSubItem("Import data", tabName = "timportData", icon = icon("table"))
-                     
-                              
-                              
+                             
                      ),
                      
                      menuItem("Non-Parametric Test", icon = icon("th-list"),
@@ -86,14 +83,14 @@ ui <- dashboardPage(
                               ),
                               
                               menuItem("One sample k-measures",
-                                       menuSubItem("Q.de Coachran Test", tabName = "tqcoachranTab", icon = icon("file")),
+                                       menuSubItem("Durbin Test", tabName = "tdurbinTab", icon = icon("file")),
                                        menuSubItem("Friedman Test", tabName = "tfriedmanTab", icon = icon("file-o")),
                                        menuSubItem("Kendall Test", tabName = "tkendallTab", icon = icon("file-text-o"))
                                        #menuSubItem("Check fieldbook", tabName = "checkFieldbook", icon = icon("eraser")),
                                        #menuSubItem("", tabName = "", icon = icon("file-text-o"))
                               ),
                               
-                              menuItem("Independent K-samples ",
+                              menuItem("Independent K-samples",
                                        menuSubItem("Kruskall-Waliis Test", tabName = "tkruskalTab", icon = icon("file")),
                                        menuSubItem("Median Test", tabName = "tmedTab", icon = icon("file-o")),
                                        menuSubItem("Jonckheere-T Test", tabName = "tjonckTab", icon = icon("file-o"))
@@ -163,8 +160,6 @@ ui <- dashboardPage(
                                 br(),
                                 br(),
                                 br(),
-                                br(),
-                                br(),
                                 
                                 # Upload ADAT UI
                                 fluidRow( #begin fluidrow for box Import data
@@ -194,7 +189,8 @@ ui <- dashboardPage(
                               
       ) , 
 
-      #tab for Wilcoxon test   -----------------------------     
+      
+  #tab for Wilcoxon test   -------------------------------------------------------------     
       
       shinydashboard::tabItem(tabName = "twilcoxon2Tab",
                               #h2("wilcoxon Test"),
@@ -232,7 +228,10 @@ ui <- dashboardPage(
       ), #end tab Wilcoxon Two-paired test  
       
       
-  #tab for Mann-Whitney test   -----------------------------     
+  #---------------------------------------------------------------------------------------
+
+      
+  #tab for Mann-Whitney test   --------------------------------------------------------------     
   
   shinydashboard::tabItem(tabName = "tmanwithneyTab",
                           #h2("mann whitney Test"),
@@ -268,9 +267,10 @@ ui <- dashboardPage(
                             
                           )    #end fluidrow 
   ), #end tab Mann-Whitney test
-      
+  #---------------------------------------------------------------------------------------    
     
-    # tab for friedman test ----------------------------
+  
+  #tab for friedman test ----------------------------------------------------------------
     shinydashboard::tabItem(tabName = "tfriedmanTab",
                      #h2("Friedman Test"),
                     
@@ -301,7 +301,44 @@ ui <- dashboardPage(
                )    #end fluidrow 
             ), #end tab Friedman test
             
-    # tab for Kruskal test -----------------------------------       
+  #---------------------------------------------------------------------------------------
+  
+  
+  #tab for friedman test ----------------------------------------------------------------
+  shinydashboard::tabItem(tabName = "tdurbinTab",
+                          #h2("Friedman Test"),
+                          
+                          fluidRow( #begin fluid row
+                            column(width = 3, 
+                                   
+                                   box(#begin inputs box friedman
+                                     title = "Durbin Test", status = "primary", solidHeader = TRUE,
+                                     collapsible = TRUE, width = NULL,
+                                     
+                                     uiOutput("ou_jugdurbin"),
+                                     uiOutput("ou_trtdurbin"),
+                                     uiOutput("ou_traitdurbin"),
+                                     
+                                     actionButton("show_dlgDurbin", "Help", icon("question-circle"),
+                                                  style = "color: #fff; background-color: #337ab7; border-color: #2e6da4")
+                                   ) #end box friedman
+                            ),
+                            column(width = 9,    
+                                   box(#begin inputs box friedman
+                                     title = "Results", status = "primary", solidHeader = TRUE,
+                                     collapsible = TRUE, width = 12,
+                                     DT::dataTableOutput("ou_dtdurbin")
+                                   )
+                            )
+                            
+                          )    #end fluidrow 
+  ), #end tab Durbin test
+  
+  #---------------------------------------------------------------------------------------
+  
+  
+  
+  #tab for Kruskal test -------------------------------------------------------------       
     shinydashboard::tabItem(tabName = "tkruskalTab",
                             #h2("Kruskall Test"),
                             
@@ -331,9 +368,10 @@ ui <- dashboardPage(
                             )    #end fluidrow 
     ), #end tab Kruskal wallis test
   
-  #-----------
+  #---------------------------------------------------------------------------------------
   
-  # tab for Median test -----------------------------------       
+  
+  #tab for Median test -----------------------------------       
   shinydashboard::tabItem(tabName = "tmedTab",
                           #h2("med"),
                           
@@ -368,14 +406,11 @@ ui <- dashboardPage(
                             
                           )    #end fluidrow 
   ), #end tab med test
-  
-  
 
-  #-------------
+  #---------------------------------------------------------------------------------------
   
     
-  
-  # tab for Jonckherre-Tepstra test -----------------------------------       
+  #tab for Jonckherre-Tepstra test -----------------------------------       
   shinydashboard::tabItem(tabName = "tjonckTab",
                           #h2("JT Test"),
                           
@@ -411,9 +446,7 @@ ui <- dashboardPage(
                           )    #end fluidrow 
   ) #end tab jonck test
   
-  
-  
-  ##########################3  
+  #--------------------------------------------------------------------------------------------
     
     ),
     br(),
@@ -425,7 +458,8 @@ ui <- dashboardPage(
     
   server_iskay <- function(input, output, session) ({    
                 
-    ###### Fiedlbook Import data -------------------################3
+    #---- Fiedlbook Import data ----------------------------------------------
+    
     
     # Select sheets -----------------------------------------------------------
     output$ou_sheets <- renderUI({
@@ -438,7 +472,9 @@ ui <- dashboardPage(
                          choices = fb_sheet, selected = 1,width = '30%')
       
     })
+    #--------------------------------------------------------------------------------------------
     
+    # Import Data Reactive Values
     importData <- reactive({
       
       req(input$uin_fb_import)
@@ -454,8 +490,9 @@ ui <- dashboardPage(
         
       }
     }) 
+    #--------------------------------------------------------------------------------------------
     
-    # Help dialogue for Import Data
+    #Help dialogue for Import Data ---------------------------
     
     observeEvent(input$show_dlgImport, {
       showModal(modalDialog(title = strong("Import Data"),
@@ -472,13 +509,12 @@ ui <- dashboardPage(
       dt <- importData()
       rhandsontable::rhandsontable(dt)
     })
-
+  
+    #--------------------------------------------------------------------------------------------
     
-    #-----------------------------
     
 
-    #-----------------------------------------
-    # Wilconxon two samples paired Test -------------------------------------------------------
+    #Wilconxon two samples paired Test ----------------------------------------------------
     
     output$ou_Xwilcox2 <- renderUI({
       
@@ -510,7 +546,7 @@ ui <- dashboardPage(
       
     })
     
-    # Wilcox two-paired sample table results ---------------------------
+    # Wilcox two-paired sample table results 
     
     output$ou_dtwilcox2  <-  DT::renderDataTable({
       
@@ -550,7 +586,7 @@ ui <- dashboardPage(
       )
     })
     
-    # Help dialogue for Wilcoxon two-paired Test -----------------------------------------
+    # Help dialogue for Wilcoxon two-paired Test
     
     observeEvent(input$show_dlgWilcox2, {
       showModal(modalDialog(title = strong("Wilcoxon Two-Paired Test"),
@@ -561,8 +597,8 @@ ui <- dashboardPage(
       ))
     })
     
+    #--------------------------------------------------------------------------
     
-    #--------------------------
     
     # Mann-Whitney Test -------------------------------------------------------
     
@@ -596,7 +632,7 @@ ui <- dashboardPage(
       
     })
     
-    # Mann-Whitney table results ---------------------------
+    # Mann-Whitney table results ----------------------------------------------
     
     output$ou_dtmanw  <-  DT::renderDataTable({
       
@@ -634,7 +670,7 @@ ui <- dashboardPage(
       )
     })
     
-    # Help dialogue for Man-Whitney Test -----------------------------------------
+    # Help dialogue for Man-Whitney Test --------------------------------------
     
     observeEvent(input$show_dlgMWhitney, {
       showModal(modalDialog(title = strong("Mann-Whitney Test"),
@@ -644,6 +680,130 @@ ui <- dashboardPage(
                             
       ))
     })
+    #--------------------------------------------------------------------------
+    
+    # Friedman Test -----------------------------------------------------------
+    
+    output$ou_jugdurbin <- renderUI({
+      
+      req(input$uin_fb_import)
+      req(input$sel_input_sheet)
+      fb_cols <- names(importData())
+      shiny::selectizeInput(inputId = "sel_input_juddurbin", 
+                            label = "Select judges",choices = fb_cols, selected = 1, width = NULL,
+                            options = list(
+                              placeholder = 'Select judges',
+                              onInitialize = I('function() { this.setValue(""); }')
+                            )
+      )
+      
+    })
+    
+    output$ou_trtdurbin <- renderUI({
+      
+      req(input$uin_fb_import)
+      req(input$sel_input_sheet)
+      fb_cols <- names(importData())
+      shiny::selectizeInput(inputId = "sel_input_trtdurbin", label = "Select treatments",
+                            choices = fb_cols, selected = 1, width = NULL,
+                            options = list(
+                              placeholder = 'Select treatments',
+                              onInitialize = I('function() { this.setValue(""); }')
+                            )
+      )
+      
+      
+      
+    })
+    
+    output$ou_traitdurbin <- renderUI({
+      
+      req(input$uin_fb_import)
+      req(input$sel_input_sheet)
+      fb_cols <- names(importData())
+      shiny::selectizeInput(inputId = "sel_input_traitdurbin", label = "Select trait", 
+                            choices = fb_cols, selected = 1, width = NULL,
+                            options = list(
+                              placeholder = 'Select treatments',
+                              onInitialize = I('function() { this.setValue(""); }')
+                            )
+      )
+      
+    })
+    
+    # Durbin table results ------------------------------------------------------------
+    
+    output$ou_dtdurbin  <-  DT::renderDataTable({
+      
+      shiny::req(input$uin_fb_import)
+      shiny::req(input$sel_input_juddurbin)
+      shiny::req(input$sel_input_trtdurbin)
+      shiny::req(input$sel_input_traitdurbin)
+      
+      fb <- importData()
+      #select judges
+      jud <- input$sel_input_juddurbin
+      jug_col <- fb[, jud] %>% pull()
+      #select treatments
+      trt  <- input$sel_input_trtdurbin
+      trt_col <- fb[, trt] %>% pull()
+      #select traits
+      trait <- input$sel_input_traitdurbin
+      trait_col <- fb[, trait] %>% pull()
+      #durbin test
+      
+      out <- test_analysis(x= trt_col, y = trait_col , jud = jug_col, test = "durbin")
+      dt <-  out$dt
+      
+      shiny::withProgress(message = "Visualizing Table...",value= 0,  #withProgress
+                          {
+                            
+                            shiny::incProgress(amount = 1/2, "loading results...")
+                            var_sheet <- paste("durbin",trait, sep="")
+                            
+                            DT::datatable( dt, rownames = FALSE, 
+                                           filter = 'top',
+                                           extensions = c('Buttons', 'Scroller'),
+                                           #selection = list( mode= "multiple",  selected =  rownames(mtl_table)), 
+                                           options = list(scrollX = TRUE, 
+                                                          scroller = TRUE,
+                                                          dom = 'Bfrtip',
+                                                          buttons = list(
+                                                            'copy',
+                                                            list(extend = 'csv',   filename = var_sheet),
+                                                            list(extend = 'excel', filename = var_sheet)
+                                                          )#,
+                                                          
+                                           )
+                                           #selection = list( mode = "multiple")#, 
+                                           #filter = 'bottom'#,
+                            )  
+                            
+                          }
+      )
+    })
+    
+    # Help dialogue for Durbin Test ---------------------------------------------------
+    
+    observeEvent(input$show_dlgDurbin, {
+      showModal(modalDialog(title = strong("Durbin Test"),
+                            
+                            includeMarkdown("www/help_text/durbin_help.rmd")
+                            
+                            
+      ))
+    })
+    #--------------------------------------------------------------------------------------------
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
       
     # Friedman Test -----------------------------------------------------------
@@ -695,7 +855,7 @@ ui <- dashboardPage(
       
     })
   
-    # Friedman table results ---------------------------
+    # Friedman table results ------------------------------------------------------------
     
     output$ou_dtfrman  <-  DT::renderDataTable({
       
@@ -747,7 +907,7 @@ ui <- dashboardPage(
           )
     })
   
-    # Help dialogue for Friedman Test -----------------------------------------
+    # Help dialogue for Friedman Test ---------------------------------------------------
     
     observeEvent(input$show_dlgFriedman, {
       showModal(modalDialog(title = strong("Friedman Test"),
@@ -757,9 +917,10 @@ ui <- dashboardPage(
                             
       ))
     })
+    #--------------------------------------------------------------------------------------------
     
       
-    # Kruskal wallis -----------------------------------
+    # Kruskal Wallis --------------------------------------------------------------------
     
     output$ou_trtkru <- renderUI({
       
@@ -793,7 +954,7 @@ ui <- dashboardPage(
       
     })
     
-    # Kruskall-Wallis table results -----------------
+    # Kruskall-Wallis table results -----------------------------------------------------
     
     output$ou_dtkru  <-  DT::renderDataTable({
       
@@ -830,7 +991,7 @@ ui <- dashboardPage(
       )
     })
     
-    # Help dialogue for Kruskal Test -------------------
+    # Help dialogue for Kruskal Test ----------------------------------------------------
     
     observeEvent(input$show_dlgKruskal, {
       showModal(modalDialog(title = strong("Kruskal Test"),
@@ -842,8 +1003,7 @@ ui <- dashboardPage(
     })
     
     
-    
-    # Median Test ---------------------------------------------------------
+    # Median Test --------------------------------------
     
     # treatment input for median test
     output$ou_trtmed <- renderUI({
@@ -879,7 +1039,7 @@ ui <- dashboardPage(
       
     })
     
-    # Median table results -----------------
+    # Median table results ----------------------------
     
     output$ou_dtmed  <-  DT::renderDataTable({
       
@@ -890,18 +1050,20 @@ ui <- dashboardPage(
       fb <- importData()
       #select treatments
       trt  <- input$sel_input_trtmed
-      trt_col <- fb[, trt]
+      trt_col <- fb[, trt] %>% pull()
       #select traits
       trait <- input$sel_input_traitmed
-      trait_col <- fb[, trait]
+      trait_col <- fb[, trait] %>% pull()
       
+      print(trait_col)
+      print(trt_col)
       #Test
       out <- test_analysis(x= trt_col, y = trait_col, test = "median")
       dt <- out$dt
   
       shiny::withProgress(message = "Visualizing Table...",value= 0,  #withProgress
                           {
-                            shiny::incProgress(amount = 1/2, "loading results")
+                             shiny::incProgress(amount = 1/2, "loading results")
                             
                             DT::datatable( dt, rownames = FALSE, 
                                              options = list(scrollX = TRUE, scroller = TRUE)
@@ -912,7 +1074,7 @@ ui <- dashboardPage(
       )
     })
     
-    # Help dialogue for Median Test -----------------------------------------
+    # Help dialogue for Median Test --------------------
     
     observeEvent(input$show_dlgMedian, {
       showModal(modalDialog(title = strong("Median Test"),
@@ -1014,3 +1176,6 @@ ui <- dashboardPage(
 
 
 
+
+  #---------------------------------------------------------------------------------------
+  

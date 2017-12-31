@@ -1,0 +1,9 @@
+
+#Description
+
+A multiple comparison of the Durbin test for the balanced incomplete blocks for sensorial or categorical evaluation.
+It forms groups according to the demanded ones for level of significance (alpha); by default, 0.05.
+
+#Reference
+ 
+`Myles Hollander, Douglas Wolfe, Eric Chicken 1942`. Nonparametric Statistical Methods. 

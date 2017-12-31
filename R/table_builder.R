@@ -75,8 +75,6 @@ test_analysis <- function(x , y, hyp, param, jud, test = "friedman", sg = 0.05, 
       
       #dt: table of means and letters for significance differences
       out <- list(dt= dt, statistic = statistic, parameter = parameter, comparison= comparison )
-      
-      
     }
     
     if(test == "kruskal"){
@@ -100,6 +98,7 @@ test_analysis <- function(x , y, hyp, param, jud, test = "friedman", sg = 0.05, 
     }
   
     if(test == "jonckheere"){
+      #ToDo: g = x need to be numeric
       #0.0 ---> In this case x =y (response variable) and g =x (independent variable) 
       outjonck <- jonckheere.test(x= y, g= x, alternative = hyp)
       statistic <- broom::glance(outjonck)
@@ -110,7 +109,7 @@ test_analysis <- function(x , y, hyp, param, jud, test = "friedman", sg = 0.05, 
       
       out <- Median.test(y = y, trt = x, console=TRUE) 
       outmed <- out$Medians %>%  
-                rename_tables("Treatment", "Median", "grather", "lessEqual")  
+                rename_tables(c("Treatment", "Median", "grather", "lessEqual"))  
       #in this case x = y (response variable) , g : explanatory variable
       pwmed <- rcompanion::pairwiseMedianTest(x = y, g = x, method = "fdr")
       pwmed <- rcompanion::cldList(p.adjust ~ Comparison,
@@ -127,6 +126,31 @@ test_analysis <- function(x , y, hyp, param, jud, test = "friedman", sg = 0.05, 
       out <- list(dt= dt, statistic = statistic, parameter = parameter, comparison= comparison)
       
     }
+  
+    if(test == "durbin"){
+      
+      if(comparison == FALSE){
+        outdurbin <-durbin.test(judge = jud, trt = x, evaluation = y, group = TRUE, alpha = sg)
+      }
+      if(comparison == TRUE){
+        outdurbin <-durbin.test(judge = jud, trt = x, evaluation = y, group = FALSE)
+      }
+      
+      dtdurbin  <- agr2df(outdurbin$means,test = "durbin")
+      #print(dtfrmeans)
+      rankdurbin <- rename_tables(outdurbin$rank, c("Treatment", "Rank"))# %>% 
+                      #select_(-2) #remove sum of ranks columns  
+      #lef join by trt fo  r merging groups column
+      dt <- dplyr::left_join(dtdurbin, rankdurbin, by="Treatment")
+      
+      statistic <- outdurbin$statistics
+      parameter <- outdurbin$parameters
+      comparison <- outdurbin$comparison
+      
+      out <- list(dt= dt, statistic = statistic, parameter = parameter, comparison= comparison )
+    }
+  
+  
   
     if(test == "manwithney"){
       outmanw <- wilcox.exact(x =  x, y = y, alternative = hyp, mu= param )

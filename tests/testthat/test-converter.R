@@ -20,6 +20,20 @@ test_that("converter test friedman", {
 })
 
 
+test_that("converter test durbin", {
+  fp <- rprojroot::find_testthat_root_file("test_data", "durbin_toxico.xlsx")
+  datos <- readxl::read_excel(fp)
+  datos <- as.data.frame(datos, stringsAsFactors=FALSE)
+  out <- agricolae::durbin.test(judge = datos[,"days"], trt = datos[,"chemical"], evaluation = datos[,"toxic"], group = TRUE, alpha=0.05)
+  meandt <- out$means
+  adt <- agr2df(meandt, test = "durbin")
+  expect_equivalent(ncol(adt), 6)
+  expect_equivalent(nrow(adt), 7)
+  
+})
+
+
+
 test_that("converter test kruskal", {
   #library(agricolae)
   #data("grass")
