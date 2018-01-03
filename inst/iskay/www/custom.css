@@ -1,5 +1,5 @@
 .content-wrapper,
 .right-side {
-  background-color: #ffffff;
-  /*background-image: url("portada_bg.jpg");*/
+  /*background-color: #ffffff;*/
+  background-image: url("portada_bg.jpg");
 }

@@ -1,0 +1,58 @@
+---
+title: "Software Development Documentation for Iskay"
+author: "Omar Benites"
+date: "January 3, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+#Guidelines for Quipo.org/Iskay R-Shiny development
+
+- `uin_name`: widgets' name that run in the UI
+- `ou_name`: widgets' name, for renderUI especifically, that use in the server
+- `sel_name`: widget's name for selectInput in the server. It goes inside renderUI
+- `ou_dtname`: widget's name for data tables running in the server.
+
+
+## Show dialogs
+- `show_dlg(Name)`
+
+## Import data #########
+
+- `actionButton `
+- `show_dlgImport`
+
+# Test results ########
+  Reactive data 
+- `test_result`: storage the results for each test using the tabName (tab name for each test).
+
+### Friedman renderUI ########
+- `uiOutput("ou_resfrman")`
+- `uiOutput("ou_trtfrman")`
+- `uiOutput("ou_blocksfrman")`
+
+# friedman selectInput
+- `sel_input_resfrman`
+- `sel_input_resfrman`
+- `sel_input_resfrman`
+
+#friedman data table
+- `ou_dtfrman`
+
+#friedman show dialog
+- `show_dlgFriedman`
+
+# TODO: #durbin test
+        #parameter table
+        #statistic table
+        #radial plot
+
+# References
+
+* http://www.kovcomp.co.uk/xlstat/tools/non-parametric-tests-on-k-independent-samples.html
+* http://bolt.mph.ufl.edu/files/2013/03/image094.gif
+* http://www.sthda.com/english/wiki/paired-samples-wilcoxon-test-in-r
