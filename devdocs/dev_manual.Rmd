@@ -9,47 +9,119 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+This file attemps to make an internal documentation for iskay nonparametric data analysis application. It includes:
 
-#Guidelines for Quipo.org/Iskay R-Shiny development
+1. Input and output object names
+
+2. Import data
+
+3. Dialogs event buttons
+
+4. Combobox options buttons
+
+5. Tables
+
+6. Example for friedman test
+
+## Input and output object names
 
 - `uin_name`: widgets' name that run in the UI
 - `ou_name`: widgets' name, for renderUI especifically, that use in the server
 - `sel_name`: widget's name for selectInput in the server. It goes inside renderUI
 - `ou_dtname`: widget's name for data tables running in the server.
 
+## Import data
+
+- `uin_fb_import`: widgets' name for fileInput. Upload data event for posterior d.analysis.
+- `ou_sheets`: widget renderer that run in the server.
+- `show_dlgImport`: widget for importing file dialog.
+
 
 ## Show dialogs
-- `show_dlg(Name)`
+- `show_dlg(Name)`: dialog windows for displaying information about input's test
 
-## Import data #########
+## ComboBox for statistical tables
 
-- `actionButton `
-- `show_dlgImport`
+- `cbTable_abbre_test`. combobox for statistical table as a result of applying different test.
+  
+This list includes thre main columns:  
+```{r,warning=FALSE, echo=FALSE, message=FALSE, cache =FALSE}
+  library(knitr)
+  library(kableExtra)
+  library(dplyr)
+  Name <- c("Global summary", "Multiple comparison", "Paired comparison") 
+  Choice <- c("gsum", "mulcom", "pcom") 
+  pt <- data.frame(Name, Choice)
+  kable(pt) 
+```
 
-# Test results ########
-  Reactive data 
-- `test_result`: storage the results for each test using the tabName (tab name for each test).
 
-### Friedman renderUI ########
+## Import data 
+
+- `show_dlgImport`. 
+
+Type: **Action button**. 
+Description: show help dialog about the test and required inputs
+
+## Tables for test results
+
+There are three types of tables:
+
+ * `ou_dt(test_abvreviation)_gsum` 
+ 
+Type: **DataTable**.
+ 
+Description: descriptive summary. Ex: ``ou_dtmanw_gsum`` (Mann-Withney summary descriptive).
+ 
+* `ou_dt(test_abbreviation)`
+ 
+Type: **DataTable**.
+  
+Description: p-values, mean or median multiple comparison. Ex. ``ou_dtmanw`` (Mann-Whitney analysis results/table), 
+ 
+ - `out_dt(test_abbreviation)_pair`
+ 
+Type: **DataTable**.
+   
+Description: paired comparison. Ex. ``ou_dtfriedman_pair`` (Friedman test paired   comparison table).
+
+## Test results
+
+- `test_result`: 
+  Type: **Reactive data**
+
+  Description: Reactive data. Storage the results for each test using the tabName (tab name for each test).
+
+## Friedman Test: Inputs and outputs
+
+### Friedman renderUI 
+
 - `uiOutput("ou_resfrman")`
 - `uiOutput("ou_trtfrman")`
 - `uiOutput("ou_blocksfrman")`
 
-# friedman selectInput
+### Friedman selectInput
+
 - `sel_input_resfrman`
 - `sel_input_resfrman`
 - `sel_input_resfrman`
 
-#friedman data table
+### Friedman data table
+
 - `ou_dtfrman`
 
-#friedman show dialog
+### Friedman show dialog
+
 - `show_dlgFriedman`
 
-# TODO: #durbin test
-        #parameter table
+
+
+
+# TODO: #parameter table
         #statistic table
         #radial plot
+
+
 
 # References
 

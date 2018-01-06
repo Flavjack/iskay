@@ -3,33 +3,74 @@
 dplyr::`%>%`
 
 
-#' Summary table
+#' General summary table
 #' 
 #' @param data data. Must be in the tidy format
-#' @param group group by
 #' @param y response variable
-#' @param test statistical test that return an specific table. It works with \code{Median}, \code{Jonckheere},...     
+# @param test statistical test that return an specific table. It works with \code{Median}, \code{Jonckheere},...     
 #' @author Omar Benites
 #' @importFrom tibble data_frame
-#' @importFrom dplyr group_by_ summarise_ n
+#' @importFrom dplyr summarise_ n mutate
 #' @export
 #' 
-test_summary <- function(data, group, y, test="jonk"){
+glb_summary <- function(data, y){
   
   #sumi <- paste("sum(", y,")", sep="")
-  #mean_y <- paste("mean(", y,")", sep="")
+  mean_y <- paste("mean(", y,",na.rm=TRUE" ,")", sep="")
+  sdev_y <- paste("sd(", y,", na.rm=TRUE" ,")", sep="")
   median_y <- paste("median(", y, ",na.rm=TRUE" ,")", sep="")
   min_y <- paste("min(", y, ",na.rm= TRUE" ,")", sep="")
   max_y <- paste("max(", y, ",na.rm= TRUE" ,")", sep="")
-    
+  miss <- paste("sum(is.na(",y,"))", sep="")
+  
   dt <- data %>% 
-          group_by_(group) %>% 
-          summarise_(n = ~n(), Median = median_y, Min = min_y, Max = max_y)
+       summarise_(n = ~n(), Mean = mean_y, Sdev= sdev_y, 
+                  Median = median_y, Min = min_y, 
+                  Max = max_y, MissVal = miss)
+  
+  dt <- dt %>% mutate(CV = 100*Sdev/abs(Mean))
+  
   return(dt)
   #References
   #http://dplyr.tidyverse.org/articles/programming.html
   #http://rmhogervorst.nl/cleancode/blog/2016/06/13/NSE_standard_evaluation_dplyr.html  
 }
+
+
+
+
+#' Summary table by group
+#' 
+#' @param data data. Must be in the tidy format
+#' @param group group by
+#' @param y response variable
+#'# @param test statistical test that return an specific table. It works with \code{Median}, \code{Jonckheere},...     
+#' @author Omar Benites
+#' @importFrom tibble data_frame
+#' @importFrom dplyr group_by_ summarise_ n
+#' @export
+#' 
+grp_summary <- function(data, group, y){
+  
+  #sumi <- paste("sum(", y,")", sep="")
+  mean_y <- paste("mean(", y,",na.rm=TRUE" ,")", sep="")
+  sdev_y <- paste("sd(", y,",na.rm=TRUE" ,")", sep="")
+  median_y <- paste("median(", y, ",na.rm=TRUE" ,")", sep="")
+  min_y <- paste("min(", y, ",na.rm= TRUE" ,")", sep="")
+  max_y <- paste("max(", y, ",na.rm= TRUE" ,")", sep="")
+  
+  
+  dt <- data %>% 
+          group_by_(group) %>% 
+          summarise_(n = ~n(), Mean = mean_y, Sdev= sdev_y, Median = median_y, Min = min_y, Max = max_y)
+  
+  return(dt)
+  #References
+  #http://dplyr.tidyverse.org/articles/programming.html
+  #http://rmhogervorst.nl/cleancode/blog/2016/06/13/NSE_standard_evaluation_dplyr.html  
+}
+
+
 
 #' Statistical tables from non-parametric analysis
 #' @title Return tables (data frames) derived from statistical analysis
@@ -38,14 +79,15 @@ test_summary <- function(data, group, y, test="jonk"){
 #' @param hyp hypothethical testing
 #' @param jud judges.
 #' @param param statistical parameter such as \code{mu}, \code{median}, etc.
-#' @param test statistical test that return an specific table. It works with \code{Median}, \code{Jonckheere},...
+#' @param test statistical test. Select \code{median}, \code{durbin}
+#' \code{jonckheere}, \code{kruskal}, \code{friedman}, \code{manwithney} and \code{wilcoxon} 
 #' @param sg Significant level. By defualt \code{alpha=0.05}
 #' @param comparison Wheter calculate comparison between samples means by treatment.
 #' @author Omar Benites
 #' @importFrom tibble data_frame
 #' @importFrom dplyr group_by left_join select_
 #' @importFrom broom glance
-#' @importFrom agricolae kruskal friedman Median.test 
+#' @importFrom agricolae kruskal friedman Median.test durbin.test
 #' @importFrom exactRankTests wilcox.exact
 #' @importFrom clinfun jonckheere.test
 #' @importFrom rcompanion pairwiseMedianTest cldList 
@@ -54,7 +96,7 @@ test_summary <- function(data, group, y, test="jonk"){
 
 test_analysis <- function(x , y, hyp, param, jud, test = "friedman", sg = 0.05, comparison=FALSE) {
   
-    if(test=="friedman"){
+    if(test == "friedman"){
       
       if(comparison == FALSE){
         outfrim <- friedman( judge = jud, trt = x, evaluation = y, group=TRUE, alpha = sg)
@@ -62,6 +104,8 @@ test_analysis <- function(x , y, hyp, param, jud, test = "friedman", sg = 0.05, 
       if(comparison){
         outfrim <- friedman( judge = jud, trt = x, evaluation = y, group=FALSE, alpha = sg)
       }
+      
+      
       
       dtfrimeans  <- agr2df(outfrim$means)
       #print(dtfrmeans)
@@ -74,7 +118,8 @@ test_analysis <- function(x , y, hyp, param, jud, test = "friedman", sg = 0.05, 
       comparison <- outfrim$comparison
       
       #dt: table of means and letters for significance differences
-      out <- list(dt= dt, statistic = statistic, parameter = parameter, comparison= comparison )
+      out <- list(dt= dt, statistic = statistic, 
+                  parameter = parameter, comparison= comparison )
     }
     
     if(test == "kruskal"){
@@ -149,8 +194,6 @@ test_analysis <- function(x , y, hyp, param, jud, test = "friedman", sg = 0.05, 
       
       out <- list(dt= dt, statistic = statistic, parameter = parameter, comparison= comparison )
     }
-  
-  
   
     if(test == "manwithney"){
       outmanw <- wilcox.exact(x =  x, y = y, alternative = hyp, mu= param )

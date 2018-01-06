@@ -1,0 +1,5 @@
+The Friedman test is a non-parametric alternative to the ANOVA with two factors where the assumption of normality is not acceptable. It is used to test if k paired samples (k>2) of size n, come from the same population or from populations having identical properties as regards the position parameter. As the context is often that of the ANOVA with two factors, we sometimes speak of the Friedman test with k treatments and n blocks.
+
+Use the Friedman's test when you have k paired samples corresponding to k treatments concerning the same blocks, in order to illustrate a difference between the treatments.
+
+`Friedman, Milton. 1937`. “The Use of Ranks to Avoid the Assumption of Normality Implicit in the Analysis of Variance.” Journal of the American Statistical Association 32 (200): 675–701.

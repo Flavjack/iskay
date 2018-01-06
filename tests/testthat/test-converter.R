@@ -64,6 +64,15 @@ test_that("converter test Jonckheere-Tepstra", {
   
 })
 
-# test_that("converter test Median", {
+test_that("converter test Median", {
+  fp <- rprojroot::find_testthat_root_file("test_data", "Jonkcherre_NaCl.xlsx")
+  datos <- readxl::read_excel(fp)
+  outjonck <- clinfun::jonckheere.test(x=datos$dataset.Juicio, g=datos$dataset.NaCl, alternative = "in")
+  adt <- broom::glance(outjonck)
+  expect_equivalent(ncol(adt), 4)
+  expect_equivalent(nrow(adt), 1)
+  
+})
 
-# })
+
+#Mann-Withney does not need converter.

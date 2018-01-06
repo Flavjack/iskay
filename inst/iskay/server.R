@@ -63,17 +63,17 @@ server_iskay <- function(input, output, session) {
       
       x  <- input$sel_input_Xwilcox2
       x_col <- fb[, x] %>% pull()
-      
       #select traits
       y <- input$sel_input_Ywilcox2
       y_col <- fb[, y] %>% pull()
+      #global summary
+      glbdt <-  glb_summary(fb, y = y) %>% as.data.frame() %>% list(glbdt = .)
       
+      # hypothesis and mu (mean)
       wilcoxHyp <- input$sel_input_wilcox2Hyp
       wilcoxMu <- input$sel_input_wilcox2Mu
-      # outwilcox <- wilcox.exact(y_col ~ x_col, mu=wilcoxMu, alternative = wilcoxHyp, paired=TRUE)
-      # dt <- broom::glance(outwilcox)
-      out <- test_analysis(x= x_col, y = y_col, hyp = wilcoxHyp,param = wilcoxMu, test = "wilcoxon")
-      #dt <- out$statistic
+      out_test <- test_analysis(x= x_col, y = y_col, hyp = wilcoxHyp,param = wilcoxMu, test = "wilcoxon")
+      out <- append(out_test, glbdt) 
     }
       
     if(ctab=="tmanwithneyTab"){
@@ -83,13 +83,14 @@ server_iskay <- function(input, output, session) {
       #select traits
       y <- input$sel_input_Ymanw
       y_col <- fb[, y]
-      
+      #global summary
+      glbdt <-  glb_summary(fb, y = y) %>% as.data.frame() %>% list(glbdt = .)
+      #hypothesis and mean
       manwHyp <- input$sel_input_manwHyp
       manwMu <- input$sel_input_manwMu
       
-      out <- test_analysis(x= trt_col, y = trait_col, hyp = manwHyp,param = manwMu, test = "manwithney")
-      #dt <- out$statistic
-      
+      out_test <- test_analysis(x= trt_col, y = trait_col, hyp = manwHyp,param = manwMu, test = "manwithney")
+      out <- append(out_test, glbdt)
       
     }
   
@@ -102,12 +103,12 @@ server_iskay <- function(input, output, session) {
       #select traits
       trait <- input$sel_input_traitdurbin
       trait_col <- fb[, trait] %>% pull()
+      #global summary
+      glbdt <-  glb_summary(fb, y = trait) %>% as.data.frame() %>% list(glbdt = .)
+      
       #durbin test
-      
-      out <- test_analysis(x= trt_col, y = trait_col , jud = jug_col, test = "durbin")
-      #dt <-  out$dt
-      
-        
+      out_test <- test_analysis(x= trt_col, y = trait_col , jud = jug_col, test = "durbin")
+      out <- append(out_test, glbdt)
     }
     
     if(ctab =="tfriedmanTab"){
@@ -120,10 +121,12 @@ server_iskay <- function(input, output, session) {
       #select traits
       trait <- input$sel_input_traitfrman
       trait_col <- fb[, trait]
-      #friedman test
+      #global summary
+      glbdt <-  glb_summary(fb, y = trait) %>% as.data.frame() %>% list(glbdt = .)
       
-      out <- test_analysis(x= trt_col, y = trait_col , jud = jug_col, test = "friedman")
-      #dt <-  out$dt
+      #friedman test
+      out_test <- test_analysis(x= trt_col, y = trait_col , jud = jug_col, test = "friedman")
+      out <- append(out_test, glbdt)
     }
     
     if(ctab=="tkruskalTab"){
@@ -132,11 +135,14 @@ server_iskay <- function(input, output, session) {
       #select traits
       trait <- input$sel_input_traitkru
       trait_col <- fb[, trait]
+      #global summary
+      glbdt <-  glb_summary(fb, y = trait) %>% as.data.frame() %>% list(glbdt = .)
+      
       
       #kruskall-wallis test
       #outkru <- kruskal(y = trait_col, trt = trt_col, group = TRUE,alpha = 0.05)
-      out <- test_analysis(x= trt_col, y = trait_col, test = "kruskal")
-      #dt <- out$dt 
+      out_test <- test_analysis(x= trt_col, y = trait_col, test = "kruskal")
+      out <- append(out_test, glbdt) 
     }
   
     if(ctab=="tjonckTab"){
@@ -148,14 +154,31 @@ server_iskay <- function(input, output, session) {
       #hypothesis
       jonckHyp <- input$sel_input_jonckHyp
       #J-T test
-      out <- test_analysis(x= trt_col, y = trait_col, hyp = jonckHyp, test = "jonckheere")
-      #dt <- out$statistic
+      #Global summary
+      glbdt <-  glb_summary(fb, y = trait) %>% as.data.frame() %>% list(glbdt = .)
+      
+      out_test <- test_analysis(x= trt_col, y = trait_col, hyp = jonckHyp, test = "jonckheere")
+      out <- append(out_test,  glbdt) 
+    }
+    
+    if(ctab=="tmedTab"){
+      
+      trt <- input$sel_input_trtmed
+      trt_col <- fb[, trt]
+      
+      trait <- input$sel_input_traitmed
+      trait_col <- fb[, trait]
+      
+      #Global summary
+      glbdt <-  glb_summary(fb, y = trait) %>% as.data.frame() %>% list(glbdt = .)
+      
+      hyp <- input$sel_input_medHyp
+      out_test <- test_analysis(x= trt_col, y = trait_col , hyp = hyp, test = "median")
+      out <- append(out_test, glbdt)
     }
     
     out
   }) 
-  
-  
   
   
   #Help dialogue for Import Data ---------------------------
@@ -212,8 +235,33 @@ server_iskay <- function(input, output, session) {
     
   })
   
-  # Wilcox two-paired sample table results 
+  #dtwilcox for general summary
+  output$ou_dtwilcox2_gsum  <-  DT::renderDataTable({
+    out <- test_result()  
+    #print(out)
+    glbdt <- out$glbdt
+    print(input$cbTables_wilcox2)
+    
+    shiny::withProgress(message = "Visualizing Table...",value= 0,  #withProgress
+                        {
+                          
+                          shiny::incProgress(amount = 1/2, "loading results")
+                          var_sheet <- paste("Wilcoxon2Sample", "Test", sep="_")
+                          DT::datatable(glbdt, rownames = FALSE,
+                                        extensions = c('Buttons'),
+                                        options = list( dom = 'Bfrtip',
+                                                        buttons = list(
+                                                          'copy',
+                                                           list(extend = 'csv',   filename = var_sheet),
+                                                           list(extend = 'excel', filename = var_sheet)
+                                                        )
+                                                    )
+                                        )
+                        }
+            )
+  })
   
+  # Wilcox two-paired sample table results 
   output$ou_dtwilcox2  <-  DT::renderDataTable({
   
     req(input$sel_input_Xwilcox2)
@@ -225,14 +273,13 @@ server_iskay <- function(input, output, session) {
                         {
                           
                           shiny::incProgress(amount = 1/2, "loading results")
-                          
-                          var_sheet <- paste("Wilcoxon2Sample", "Test", sep="_")
-                          
-                          DT::datatable( dt, rownames = FALSE, 
+                          var_sheet <- paste("Wilcoxon2General", "Summary", sep="_")
+                          DT::datatable( dt, rownames = FALSE,
                                          filter = 'top',
                                          extensions = c('Buttons', 'Scroller'),
-                                         #selection = list( mode= "multiple",  selected =  rownames(mtl_table)), 
-                                         options = list(scrollX = TRUE, 
+                                         #selection = list( mode= "multiple",  selected =  rownames(mtl_table)),
+                                         options = list(pageLength = 5,
+                                                        scrollX = TRUE,
                                                         scroller = TRUE,
                                                         dom = 'Bfrtip',
                                                         buttons = list(
@@ -240,50 +287,12 @@ server_iskay <- function(input, output, session) {
                                                           list(extend = 'csv',   filename = var_sheet),
                                                           list(extend = 'excel', filename = var_sheet)
                                                         )#,
-                                                        
                                          )
-                          )  
-                          
+                          )
                         }
     )
   })
-  
-  output$ou_dtwilcox3  <-  DT::renderDataTable({
-    
-    # req(input$sel_input_Xwilcox2)
-    # req(input$sel_input_Ywilcox2)
-    # out <- test_result()  
-    # dt <- out$statistic
-    dt <- iris
-    
-    shiny::withProgress(message = "Visualizing Table...",value= 0,  #withProgress
-                        {
-                          
-                          shiny::incProgress(amount = 1/2, "loading results")
-                          
-                          var_sheet <- paste("Wilcoxon2Sample", "Test", sep="_")
-                          
-                          DT::datatable( dt, rownames = FALSE, 
-                                         filter = 'top',
-                                         extensions = c('Buttons', 'Scroller'),
-                                         #selection = list( mode= "multiple",  selected =  rownames(mtl_table)), 
-                                         options = list(scrollX = TRUE, 
-                                                        scroller = TRUE,
-                                                        dom = 'Bfrtip',
-                                                        buttons = list(
-                                                          'copy',
-                                                          list(extend = 'csv',   filename = var_sheet),
-                                                          list(extend = 'excel', filename = var_sheet)
-                                                        )#,
-                                                        
-                                         )
-                          )  
-                          
-                        }
-    )
-  })
-  
-  
+
   # Help dialogue for Wilcoxon two-paired Test
   
   observeEvent(input$show_dlgWilcox2, {
@@ -330,9 +339,34 @@ server_iskay <- function(input, output, session) {
     )
     
   })
+
+  #dtmanw for general summary
+  output$ou_dtmanw_gsum  <-  DT::renderDataTable({
+    out <- test_result()  
+    print(out)
+    glbdt <- out$glbdt
+    print(input$cbTables_wilcox2)
+    
+    shiny::withProgress(message = "Visualizing Table...",value= 0,  #withProgress
+                        {
+                          
+                          shiny::incProgress(amount = 1/2, "loading results")
+                          var_sheet <- paste("ManWithney", "Test", sep="_")
+                          DT::datatable(glbdt, rownames = FALSE,
+                                        extensions = c('Buttons'),
+                                        options = list( dom = 'Bfrtip',
+                                                        buttons = list(
+                                                          'copy',
+                                                          list(extend = 'csv',   filename = var_sheet),
+                                                          list(extend = 'excel', filename = var_sheet)
+                                                        )
+                                        )
+                          )
+                        }
+    )
+  })
   
   # Mann-Whitney table results ----------------------------------------------
-  
   output$ou_dtmanw  <-  DT::renderDataTable({
     
     shiny::req(input$uin_fb_import)
@@ -371,8 +405,8 @@ server_iskay <- function(input, output, session) {
   })
   
   # Help dialogue for Man-Whitney Test --------------------------------------
-  
-  observeEvent(input$show_dlgMWhitney, {
+ 
+  observeEvent(input$show_dlgManW, {
     showModal(modalDialog(title = strong("Mann-Whitney Test"),
                           
                           includeMarkdown("www/help_text/manwhitney_help.rmd")
@@ -436,8 +470,32 @@ server_iskay <- function(input, output, session) {
     
   })
   
-  # Durbin table results ------------------------------------------------------------
+  #dtdurbin for general summary
+  output$ou_dtdurbin_gsum  <-  DT::renderDataTable({
+    out <- test_result()  
+    #print(out)
+    glbdt <- out$glbdt
+    
+    shiny::withProgress(message = "Visualizing Table...",value= 0,  #withProgress
+                        {
+                          
+                          shiny::incProgress(amount = 1/2, "loading results")
+                          var_sheet <- paste("DurbinGeneral", "Summary", sep="_")
+                          DT::datatable(glbdt, rownames = FALSE,
+                                        extensions = c('Buttons'),
+                                        options = list( dom = 'Bfrtip',
+                                                        buttons = list(
+                                                          'copy',
+                                                          list(extend = 'csv',   filename = var_sheet),
+                                                          list(extend = 'excel', filename = var_sheet)
+                                                        )
+                                        )
+                          )
+                        }
+    )
+  })
   
+  # Durbin table results ------------------------------------------------------------
   output$ou_dtdurbin  <-  DT::renderDataTable({
     
     shiny::req(input$uin_fb_import)
@@ -540,8 +598,32 @@ server_iskay <- function(input, output, session) {
     
   })
   
-  # Friedman table results ------------------------------------------------------------
+  #dtfrman for general summary
+  output$ou_dtfrman_gsum  <-  DT::renderDataTable({
+    out <- test_result()  
+    #print(out)
+    glbdt <- out$glbdt
+    
+    shiny::withProgress(message = "Visualizing Table...",value= 0,  #withProgress
+                        {
+                          
+                          shiny::incProgress(amount = 1/2, "loading results")
+                          var_sheet <- paste("FriedmanGeneral", "Summary", sep="_")
+                          DT::datatable(glbdt, rownames = FALSE,
+                                        extensions = c('Buttons'),
+                                        options = list( dom = 'Bfrtip',
+                                                        buttons = list(
+                                                          'copy',
+                                                          list(extend = 'csv',   filename = var_sheet),
+                                                          list(extend = 'excel', filename = var_sheet)
+                                                        )
+                                        )
+                          )
+                        }
+    )
+  })
   
+  # Friedman table results ------------------------------------------------------------
   output$ou_dtfrman  <-  DT::renderDataTable({
     
     shiny::req(input$uin_fb_import)
@@ -627,6 +709,31 @@ server_iskay <- function(input, output, session) {
                           )
     )
     
+  })
+  
+  #dtkruskal for general summary
+  output$ou_dtkru_gsum  <-  DT::renderDataTable({
+    out <- test_result()  
+    #print(out)
+    glbdt <- out$glbdt
+    
+    shiny::withProgress(message = "Visualizing Table...",value= 0,  #withProgress
+                        {
+                          
+                          shiny::incProgress(amount = 1/2, "loading results")
+                          var_sheet <- paste("KruskalGeneral", "Summary", sep="_")
+                          DT::datatable(glbdt, rownames = FALSE,
+                                        extensions = c('Buttons'),
+                                        options = list( dom = 'Bfrtip',
+                                                        buttons = list(
+                                                          'copy',
+                                                          list(extend = 'csv',   filename = var_sheet),
+                                                          list(extend = 'excel', filename = var_sheet)
+                                                        )
+                                        )
+                          )
+                        }
+    )
   })
   
   # Kruskall-Wallis table results -----------------------------------------------------
@@ -719,6 +826,30 @@ server_iskay <- function(input, output, session) {
     
   })
   
+  #dtmed for general summary
+  output$ou_dtmed_gsum  <-  DT::renderDataTable({
+    out <- test_result()  
+    glbdt <- out$glbdt
+    
+    shiny::withProgress(message = "Visualizing Table...",value= 0,  #withProgress
+                        {
+                          
+                          shiny::incProgress(amount = 1/2, "loading results")
+                          var_sheet <- paste("MedianGeneral", "Summary", sep="_")
+                          DT::datatable(glbdt, rownames = FALSE,
+                                        extensions = c('Buttons'),
+                                        options = list( dom = 'Bfrtip',
+                                                        buttons = list(
+                                                          'copy',
+                                                          list(extend = 'csv',   filename = var_sheet),
+                                                          list(extend = 'excel', filename = var_sheet)
+                                                        )
+                                        )
+                          )
+                        }
+    )
+  })
+  
   # Median table results ----------------------------
   
   output$ou_dtmed  <-  DT::renderDataTable({
@@ -805,9 +936,34 @@ server_iskay <- function(input, output, session) {
     )
     
   })
+
+  #dtjonck for general summary
+  output$ou_dtjonck_gsum  <-  DT::renderDataTable({
+    out <- test_result()  
+    glbdt <- out$glbdt
+    
+    shiny::withProgress(message = "Visualizing Table...",value= 0,  #withProgress
+                        {
+                          
+                          shiny::incProgress(amount = 1/2, "loading results")
+                          var_sheet <- paste("JonckheereGeneral", "Summary", sep="_")
+                          DT::datatable(glbdt, rownames = FALSE,
+                                        extensions = c('Buttons'),
+                                        options = list( dom = 'Bfrtip',
+                                                        buttons = list(
+                                                          'copy',
+                                                          list(extend = 'csv',   filename = var_sheet),
+                                                          list(extend = 'excel', filename = var_sheet)
+                                                        )
+                                        )
+                          )
+                        }
+    )
+  })
   
+  
+    
   # J-T table results 
-  
   output$ou_dtjonck  <-  DT::renderDataTable({
     
     shiny::req(input$uin_fb_import)
@@ -848,7 +1004,6 @@ server_iskay <- function(input, output, session) {
   })
   
   # Help dialogue for J-T Test -----------------------------------------
-  
   observeEvent(input$show_dlgjonck, {
     showModal(modalDialog(title = strong("Jonckheere Test"),
                           

@@ -18,7 +18,8 @@ test_analysis(x, y, hyp, param, jud, test = "friedman", sg = 0.05,
 
 \item{jud}{judges.}
 
-\item{test}{statistical test that return an specific table. It works with \code{Median}, \code{Jonckheere},...}
+\item{test}{statistical test. Select \code{median}, \code{durbin}
+\code{jonckheere}, \code{kruskal}, \code{friedman}, \code{manwithney} and \code{wilcoxon}}
 
 \item{sg}{Significant level. By defualt \code{alpha=0.05}}
 

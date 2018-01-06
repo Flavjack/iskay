@@ -1,4 +1,5 @@
 library(iskay)
+
 context("Test for test_analysis")
 
 test_that("test analysis friedman", {
@@ -9,7 +10,6 @@ test_that("test analysis friedman", {
   expect_equivalent(nrow(adt), 4)
   
 })
-
 
 test_that("test analysis kruskal", {
   fp <- rprojroot::find_testthat_root_file("test_data", "kruskal_corn.csv")
@@ -26,15 +26,12 @@ test_that("test analysis median", {
   
   fp <- rprojroot::find_testthat_root_file("test_data", "medianTest_data.xlsx")
   datos <- readxl::read_excel(fp) %>% as.data.frame(stringsAsFactors=FALSE)
-  
   as <- test_analysis(x= datos[,"Speaker"], y = datos[,"Likert"], test = "median")
   adt <- as$dt
   expect_equivalent(ncol(adt), 5)
   expect_equivalent(nrow(adt), 3)
   
 })
-
-
 
 test_that("test analysis Jonckheere-Tepstra", {
   fp <- rprojroot::find_testthat_root_file("test_data", "Jonkcherre_NaCl.xlsx")
@@ -47,4 +44,14 @@ test_that("test analysis Jonckheere-Tepstra", {
   
 })
 
+test_that("test for durbin", {
+  fp <- rprojroot::find_testthat_root_file("test_data", "durbin_toxico.xlsx")
+  datos <- readxl::read_excel(fp)
+  
+  as <- test_analysis(x= datos$chemical, jud = datos$days, y =  datos$toxic, test = "durbin")
+  adt <- as$dt 
+  expect_equivalent(ncol(adt), 7)
+  expect_equivalent(nrow(adt), 7)
+  
+})
 
