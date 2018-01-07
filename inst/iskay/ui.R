@@ -220,10 +220,8 @@ ui <- dashboardPage(
                                       
                                        checkboxGroupInput("cbTables_wilcox2", "Options",selected = 2,
                                                           choiceNames =
-                                                            list("Global summary", "Multiple comparison",
-                                                                  "Paired comparison" ),
-                                                          choiceValues =
-                                                            list("gsum", "mulcom", "pcom")
+                                                            list("Global summary", "Multiple comparison"),
+                                                          choiceValues = list("gsum", "mulcom" )
                                        ),
                                        actionButton("show_dlgWilcox2", "Help", icon("question-circle"),
                                                       style = "color: #fff; background-color: #337ab7; border-color: #2e6da4")
@@ -235,7 +233,7 @@ ui <- dashboardPage(
                                          condition = "input.cbTables_wilcox2.includes('gsum')",
                                          
                                        box(#begin inputs box wilcox2
-                                           title = "Summary statistics", status = "primary", solidHeader = TRUE,
+                                           title = "Descriptive statistics", status = "primary", solidHeader = TRUE,
                                            collapsible = TRUE, width = 12,
                                            
                                            #DT::dataTableOutput("ou_dtwilcox2")#,
@@ -249,7 +247,7 @@ ui <- dashboardPage(
                                          
                                         
                                        box(#begin inputs box wilcox2
-                                         title = "Multiple comparison", status = "primary", solidHeader = TRUE,
+                                         title = "Hypothesis testing", status = "primary", solidHeader = TRUE,
                                          collapsible = TRUE, width = 12,
                                          
                                          DT::dataTableOutput("ou_dtwilcox2")#,
@@ -288,10 +286,9 @@ ui <- dashboardPage(
                                          
                                          checkboxGroupInput("cbTables_manw", "Options",
                                                             choiceNames =
-                                                              list("Global summary", "Multiple comparison",
-                                                                   "Paired comparison" ),
+                                                              list("Global summary", "Multiple comparison"),
                                                             choiceValues =
-                                                              list("gsum", "mulcom", "pcom")
+                                                              list("gsum", "mulcom")
                                          ),
                                          
                                          actionButton("show_dlgManW", "Help", icon("question-circle"),
@@ -301,10 +298,10 @@ ui <- dashboardPage(
                                 column(width = 9,   
                                        
                                        conditionalPanel(
-                                         condition = "input.cbTables_manw == 'gsum'",
+                                         condition = "input.cbTables_manw.includes('gsum')",
                                          
                                          box(#begin inputs box wilcox2
-                                           title = "Results", status = "primary", solidHeader = TRUE,
+                                           title = "Descriptive statistics", status = "primary", solidHeader = TRUE,
                                            collapsible = TRUE, width = 12,
                                            
                                            #DT::dataTableOutput("ou_dtwilcox2")#,
@@ -313,13 +310,17 @@ ui <- dashboardPage(
                                          
                                        ), #end conditionalPanel for mann-whitney
                                        
-                                       
+                                       conditionalPanel(
+                                         condition = "input.cbTables_manw.includes('mulcom')",
+                                         
                                        box(#begin inputs box mann-whitney
-                                         title = "Results", status = "primary", solidHeader = TRUE,
+                                         title = "Hypothesis testing values", status = "primary", solidHeader = TRUE,
                                          collapsible = TRUE, width = 12,
                                          
                                          DT::dataTableOutput("ou_dtmanw")
                                        )
+                                    ) 
+                                       
                                 )
                                 
                               )    #end fluidrow 
@@ -327,7 +328,7 @@ ui <- dashboardPage(
       #---------------------------------------------------------------------------------------    
       
       
-      #tab for friedman test ----------------------------------------------------------------
+      #tab for Friedman test ----------------------------------------------------------------
       shinydashboard::tabItem(tabName = "tfriedmanTab",
                               #h2("Friedman Test"),
                               
@@ -357,10 +358,10 @@ ui <- dashboardPage(
                                 column(width = 9,  
                                        
                                        conditionalPanel(
-                                         condition = "input.cbTables_frman == 'gsum'",
+                                         condition = "input.cbTables_frman.includes('gsum')",
                                          
                                          box(#begin inputs box friedman
-                                           title = "Results", status = "primary", solidHeader = TRUE,
+                                           title = "Descriptive statistics", status = "primary", solidHeader = TRUE,
                                            collapsible = TRUE, width = 12,
 
                                            div(DT::dataTableOutput("ou_dtfrman_gsum"))
@@ -369,12 +370,29 @@ ui <- dashboardPage(
                                        ), #end conditionalPanel for friedman
 
 
+                                       conditionalPanel(
+                                         condition = "input.cbTables_frman.includes('mulcom')",
+                                         
+                                       
                                        box(#begin inputs box friedman
-                                         title = "Results", status = "primary", solidHeader = TRUE,
-                                         collapsible = TRUE, width = 12,
+                                           title = "Multiple comparison", status = "primary", solidHeader = TRUE,
+                                           collapsible = TRUE, width = 12,
                                          
                                          DT::dataTableOutput("ou_dtfrman")
+                                        )
+                                       ),
+                                       
+                                       box(#begin inputs box friedman
+                                         title = "Paired comparison", status = "primary", solidHeader = TRUE,
+                                         collapsible = TRUE, width = 12,
+                                         
+                                         DT::dataTableOutput("ou_dtfrman_pcom")
                                        )
+                                       
+                                       
+                                       
+                                       
+                                       
                                 )
                                 
                               )    #end fluidrow 
@@ -413,10 +431,10 @@ ui <- dashboardPage(
                                 column(width = 9,
                                        
                                        conditionalPanel(
-                                         condition = "input.cbTables_durbin == 'gsum'",
+                                         condition = "input.cbTables_durbin.includes('gsum')",
                                          
                                          box(#begin inputs box durbin
-                                           title = "Results", status = "primary", solidHeader = TRUE,
+                                           title = "Descriptive statistics", status = "primary", solidHeader = TRUE,
                                            collapsible = TRUE, width = 12,
                                            
                                            div(DT::dataTableOutput("ou_dtdurbin_gsum"))
@@ -424,11 +442,17 @@ ui <- dashboardPage(
                                          
                                        ), #end conditionalPanel for durbin
                                        
+                                       conditionalPanel(
+                                         condition = "input.cbTables_durbin.includes('mulcom')",
+                                         
+                                       
                                        box(#begin inputs box durbin
-                                         title = "Results", status = "primary", solidHeader = TRUE,
-                                         collapsible = TRUE, width = 12,
-                                         DT::dataTableOutput("ou_dtdurbin")
-                                       )
+                                           title = "Multiple comparison", status = "primary", solidHeader = TRUE,
+                                           collapsible = TRUE, width = 12,
+                                          DT::dataTableOutput("ou_dtdurbin")
+                                        )
+                                      )
+                                       
                                 )
                                 
                               )    #end fluidrow 
@@ -466,23 +490,27 @@ ui <- dashboardPage(
                                 column(width = 9, 
                                        
                                        conditionalPanel(
-                                         condition = "input.cbTables_kru == 'gsum'",
+                                         condition = "input.cbTables_kru.includes('gsum')",
                                          
                                          box(#begin inputs box kruskal wallis
-                                           title = "Results", status = "primary", solidHeader = TRUE,
+                                           title = "Descriptive statistics", status = "primary", solidHeader = TRUE,
                                            collapsible = TRUE, width = 12,
                                            
                                            div(DT::dataTableOutput("ou_dtkru_gsum"))
                                          )
                                          
                                        ), #end conditionalPanel for kruskal
-                                       
-                                      box(#begin inputs box kruskal
-                                         title = "Results", status = "primary", solidHeader = TRUE,
-                                         collapsible = TRUE, width = 12,
-                                         
-                                         DT::dataTableOutput("ou_dtkru")
-                                       )
+                                    
+                                    conditionalPanel(
+                                         condition = "input.cbTables_kru.includes('mulcom')",
+                                    
+                                        box(#begin inputs box kruskal
+                                            title = "Multiple comparison", status = "primary", solidHeader = TRUE,
+                                            collapsible = TRUE, width = 12,
+                                            
+                                            DT::dataTableOutput("ou_dtkru")
+                                        )
+                                      )
                                 )
                                 
                               )    #end fluidrow 
@@ -526,10 +554,10 @@ ui <- dashboardPage(
                                 column(width = 9,    
 
                                        conditionalPanel(
-                                         condition = "input.cbTables_med == 'gsum'",
+                                         condition = "input.cbTables_med.includes('gsum')",
                                          
                                          box(#begin inputs box median
-                                           title = "Results", status = "primary", solidHeader = TRUE,
+                                           title = "Descriptive statistics", status = "primary", solidHeader = TRUE,
                                            collapsible = TRUE, width = 12,
                                            
                                            div(DT::dataTableOutput("ou_dtmed_gsum"))
@@ -537,13 +565,17 @@ ui <- dashboardPage(
                                          
                                        ), #end conditionalPanel for median
                                      
-                                       
-                                       box(#begin inputs box med
-                                         title = "Results", status = "primary", solidHeader = TRUE,
-                                         collapsible = TRUE, width = 12,
+                                       conditionalPanel(
+                                         condition = "input.cbTables_med.includes('mulcom')",
                                          
-                                         DT::dataTableOutput("ou_dtmed")
+                                        
+                                       box(#begin inputs box med
+                                            title = "Multiple comparison", status = "primary", solidHeader = TRUE,
+                                            collapsible = TRUE, width = 12,
+                                         
+                                            DT::dataTableOutput("ou_dtmed")
                                        )
+                                    ) 
                                 )
                                 
                               )    #end fluidrow 
@@ -575,10 +607,9 @@ ui <- dashboardPage(
                                          
                                          checkboxGroupInput("cbTables_jonck", "Options",
                                                             choiceNames =
-                                                              list("Global summary", "Multiple comparison",
-                                                                   "Paired comparison" ),
+                                                              list("Global summary", "Multiple comparison"),
                                                             choiceValues =
-                                                              list("gsum", "mulcom", "pcom")
+                                                              list("gsum", "mulcom")
                                          ),
                                          
                                          
@@ -587,12 +618,12 @@ ui <- dashboardPage(
                                        ) #end box jonck
                                 ),
                                 column(width = 9,    
-                                       
+                                         
                                        conditionalPanel(
-                                         condition = "input.cbTables_jonck == 'gsum'",
+                                         condition = "input.cbTables_jonck.includes('gsum')",
                                          
                                          box(#begin inputs box jonck
-                                           title = "Results", status = "primary", solidHeader = TRUE,
+                                           title = "Descriptive statistics", status = "primary", solidHeader = TRUE,
                                            collapsible = TRUE, width = 12,
                                            
                                            #DT::dataTableOutput("ou_dtwilcox2")#,
@@ -601,11 +632,15 @@ ui <- dashboardPage(
                                          
                                        ), #end conditionalPanel for jonck
                                      
-                                       box(#begin inputs box jonck
-                                         title = "Results", status = "primary", solidHeader = TRUE,
-                                         collapsible = TRUE, width = 12,
+                                       conditionalPanel(
+                                         condition = "input.cbTables_jonck.includes('mulcom')",
                                          
-                                         DT::dataTableOutput("ou_dtjonck")
+                                         box(#begin inputs box jonck
+                                              title = "Hypothesis testing values", status = "primary", solidHeader = TRUE,
+                                              collapsible = TRUE, width = 12,
+                                           
+                                              DT::dataTableOutput("ou_dtjonck")
+                                         )
                                        )
                                 )
                                 
@@ -613,6 +648,7 @@ ui <- dashboardPage(
       ) #end tab jonck test
       
       #--------------------------------------------------------------------------------------------
+      
       
     ),
     br(),

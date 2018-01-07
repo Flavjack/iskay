@@ -19,7 +19,7 @@ server_iskay <- function(input, output, session) {
     req(input$uin_fb_import)
     fb_temp <- input$uin_fb_import
     file.copy(fb_temp$datapath,paste(fb_temp$datapath, ".xlsx", sep=""))
-    fb_sheet <- readxl::excel_sheets(paste(fb_temp$datapath, ".xlsx", sep=""))
+    fb_sheet <- try(readxl::excel_sheets(paste(fb_temp$datapath, ".xlsx", sep="")))
     shiny::selectInput(inputId = "sel_input_sheet", label = "Select sheet", 
                        choices = fb_sheet, selected = 1,width = '30%')
     
@@ -38,7 +38,7 @@ server_iskay <- function(input, output, session) {
     if(!is.null(fb_temp)){
       
       file.copy(fb_temp$datapath,paste(fb_temp$datapath, ".xlsx", sep=""))
-      fb_temp <- readxl::read_excel(paste(fb_temp$datapath, ".xlsx", sep=""), sheet = sheet)
+      fb_temp <- try(readxl::read_excel(paste(fb_temp$datapath, ".xlsx", sep=""), sheet = sheet))
       
     }
   }) 
@@ -47,17 +47,34 @@ server_iskay <- function(input, output, session) {
   ######
   test_result <- reactive({
     
-    #ToDO: 
+    #ToDo: 
     #Colocar un checkbox para hacer un display de tablas
     #Incluir resumen de datos de forma general
     #Incluir diferencias por pares A B PVALUE
-    #
     
     req(input$uin_fb_import)
     req(input$sel_input_sheet)
     
     ctab <- input$tabs #get current tab
     fb <- importData()
+    
+    if(ctab=="tmanwithneyTab"){
+      x  <- input$sel_input_Xmanw
+      x_col <- fb[, x] %>% pull()
+      str(x_col)
+      #select traits
+      y <- input$sel_input_Ymanw
+      y_col <- fb[, y] %>% pull()
+      #global summary
+      glbdt <-  try(glb_summary(fb, y = y) %>% as.data.frame() %>% list(glbdt = .))
+      #hypothesis and mean
+      manwHyp <- input$sel_input_manwHyp
+      manwMu <- input$sel_input_manwMu
+      
+      out_test <- try(test_analysis(x= x_col, y = y_col, hyp = manwHyp,param = manwMu, test = "manwithney"))
+      out <- append(out_test, glbdt)
+      
+    }
     
     if(ctab=="twilcoxon2Tab"){
       
@@ -67,33 +84,15 @@ server_iskay <- function(input, output, session) {
       y <- input$sel_input_Ywilcox2
       y_col <- fb[, y] %>% pull()
       #global summary
-      glbdt <-  glb_summary(fb, y = y) %>% as.data.frame() %>% list(glbdt = .)
+      glbdt <-  try(glb_summary(fb, y = y) %>% as.data.frame() %>% list(glbdt = .))
       
       # hypothesis and mu (mean)
       wilcoxHyp <- input$sel_input_wilcox2Hyp
       wilcoxMu <- input$sel_input_wilcox2Mu
-      out_test <- test_analysis(x= x_col, y = y_col, hyp = wilcoxHyp,param = wilcoxMu, test = "wilcoxon")
+      out_test <- try(test_analysis(x= x_col, y = y_col, hyp = wilcoxHyp,param = wilcoxMu, test = "wilcoxon"))
       out <- append(out_test, glbdt) 
     }
-      
-    if(ctab=="tmanwithneyTab"){
-      x  <- input$sel_input_Xmanw
-      x_col <- fb[, x]
-      str(x_col)
-      #select traits
-      y <- input$sel_input_Ymanw
-      y_col <- fb[, y]
-      #global summary
-      glbdt <-  glb_summary(fb, y = y) %>% as.data.frame() %>% list(glbdt = .)
-      #hypothesis and mean
-      manwHyp <- input$sel_input_manwHyp
-      manwMu <- input$sel_input_manwMu
-      
-      out_test <- test_analysis(x= trt_col, y = trait_col, hyp = manwHyp,param = manwMu, test = "manwithney")
-      out <- append(out_test, glbdt)
-      
-    }
-  
+    
     if(ctab =="tdurbinTab"){
       jud <- input$sel_input_juddurbin
       jug_col <- fb[, jud] %>% pull()
@@ -104,10 +103,13 @@ server_iskay <- function(input, output, session) {
       trait <- input$sel_input_traitdurbin
       trait_col <- fb[, trait] %>% pull()
       #global summary
-      glbdt <-  glb_summary(fb, y = trait) %>% as.data.frame() %>% list(glbdt = .)
+      glbdt <- try(glb_summary(fb, y = trait) %>% as.data.frame() %>% list(glbdt = .))
+      
+      comp <- FALSE
+      if(is.element('pcom', input$cbTables_durbin)) {comp <-  TRUE}
       
       #durbin test
-      out_test <- test_analysis(x= trt_col, y = trait_col , jud = jug_col, test = "durbin")
+      out_test <- try(test_analysis(x= trt_col, y = trait_col , jud = jug_col, test = "durbin",comp = ))
       out <- append(out_test, glbdt)
     }
     
@@ -122,10 +124,13 @@ server_iskay <- function(input, output, session) {
       trait <- input$sel_input_traitfrman
       trait_col <- fb[, trait]
       #global summary
-      glbdt <-  glb_summary(fb, y = trait) %>% as.data.frame() %>% list(glbdt = .)
+      glbdt <-  try(glb_summary(fb, y = trait) %>% as.data.frame() %>% list(glbdt = .))
+      
+      comp <- FALSE #by default there is no pair comparison ultil pressing 
+      if(is.element('pcom', input$cbTables_frman)) {comp <-  TRUE}
       
       #friedman test
-      out_test <- test_analysis(x= trt_col, y = trait_col , jud = jug_col, test = "friedman")
+      out_test <- try(test_analysis(x= trt_col, y = trait_col , jud = jug_col, test = "friedman", comp = comp))
       out <- append(out_test, glbdt)
     }
     
@@ -136,29 +141,16 @@ server_iskay <- function(input, output, session) {
       trait <- input$sel_input_traitkru
       trait_col <- fb[, trait]
       #global summary
-      glbdt <-  glb_summary(fb, y = trait) %>% as.data.frame() %>% list(glbdt = .)
+      glbdt <-  try(glb_summary(fb, y = trait) %>% as.data.frame() %>% list(glbdt = .))
+      
+      comp <- FALSE #by default there is no pair comparison ultil pressing 
+      if(is.element(el = 'pcom',set =  input$cbTables_kru)) {comp <-  TRUE}
       
       
       #kruskall-wallis test
       #outkru <- kruskal(y = trait_col, trt = trt_col, group = TRUE,alpha = 0.05)
-      out_test <- test_analysis(x= trt_col, y = trait_col, test = "kruskal")
+      out_test <- try(test_analysis(x= trt_col, y = trait_col, test = "kruskal", comp = comp))
       out <- append(out_test, glbdt) 
-    }
-  
-    if(ctab=="tjonckTab"){
-      trt  <- input$sel_input_trtjonck
-      trt_col <- fb[, trt] %>% pull()
-      #select traits
-      trait <- input$sel_input_traitjonck
-      trait_col <- fb[, trait] %>% pull()
-      #hypothesis
-      jonckHyp <- input$sel_input_jonckHyp
-      #J-T test
-      #Global summary
-      glbdt <-  glb_summary(fb, y = trait) %>% as.data.frame() %>% list(glbdt = .)
-      
-      out_test <- test_analysis(x= trt_col, y = trait_col, hyp = jonckHyp, test = "jonckheere")
-      out <- append(out_test,  glbdt) 
     }
     
     if(ctab=="tmedTab"){
@@ -170,12 +162,34 @@ server_iskay <- function(input, output, session) {
       trait_col <- fb[, trait]
       
       #Global summary
-      glbdt <-  glb_summary(fb, y = trait) %>% as.data.frame() %>% list(glbdt = .)
+      glbdt <-  try(glb_summary(fb, y = trait) %>% as.data.frame() %>% list(glbdt = .))
       
       hyp <- input$sel_input_medHyp
-      out_test <- test_analysis(x= trt_col, y = trait_col , hyp = hyp, test = "median")
+      
+      comp <- FALSE #by default there is no pair comparison ultil pressing 
+      if(is.element('pcom', input$cbTables_med)) {comp <-  TRUE}
+      
+      
+      out_test <- try(test_analysis(x= trt_col, y = trait_col , hyp = hyp, test = "median", comp = comp))
       out <- append(out_test, glbdt)
     }
+    
+    if(ctab=="tjonckTab"){
+      trt  <- input$sel_input_trtjonck
+      trt_col <- fb[, trt] %>% pull()
+      #select traits
+      trait <- input$sel_input_traitjonck
+      trait_col <- fb[, trait] %>% pull()
+      #hypothesis
+      jonckHyp <- input$sel_input_jonckHyp
+      #J-T test
+      #Global summary
+      glbdt <-  try(glb_summary(fb, y = trait) %>% as.data.frame() %>% list(glbdt = .))
+      
+      out_test <- try(test_analysis(x= trt_col, y = trait_col, hyp = jonckHyp, test = "jonckheere"))
+      out <- append(out_test,  glbdt) 
+    }
+    
     
     out
   }) 
@@ -240,7 +254,7 @@ server_iskay <- function(input, output, session) {
     out <- test_result()  
     #print(out)
     glbdt <- out$glbdt
-    print(input$cbTables_wilcox2)
+    #print(input$cbTables_wilcox2)
     
     shiny::withProgress(message = "Visualizing Table...",value= 0,  #withProgress
                         {
@@ -663,6 +677,48 @@ server_iskay <- function(input, output, session) {
     )
   })
   
+  # friedman paired comparison
+  output$ou_dtfrman_pcom  <-  DT::renderDataTable({
+    
+    shiny::req(input$uin_fb_import)
+    shiny::req(input$sel_input_judfrman)
+    shiny::req(input$sel_input_trtfrman)
+    shiny::req(input$sel_input_traitfrman)
+    
+    trait <- input$sel_input_traitfrman
+    out <- test_result()  
+    dt <-  out$comparison
+    
+    shiny::withProgress(message = "Visualizing Table...",value= 0,  #withProgress
+                        {
+                          
+                          shiny::incProgress(amount = 1/2, "Loading results")
+                          var_sheet <- paste("friedman",trait, sep="")
+                          
+                          DT::datatable( dt, rownames = FALSE, 
+                                         filter = 'top',
+                                         extensions = c('Buttons', 'Scroller'),
+                                         #selection = list( mode= "multiple",  selected =  rownames(mtl_table)), 
+                                         options = list(scrollX = TRUE, 
+                                                        scroller = TRUE,
+                                                        dom = 'Bfrtip',
+                                                        buttons = list(
+                                                          'copy',
+                                                          list(extend = 'csv',   filename = var_sheet),
+                                                          list(extend = 'excel', filename = var_sheet)
+                                                        )#,
+                                                        
+                                         )
+                                         #selection = list( mode = "multiple")#, 
+                                         #filter = 'bottom'#,
+                          )  
+                          
+                        }
+    )
+  })
+  
+  
+  
   # Help dialogue for Friedman Test ---------------------------------------------------
   
   observeEvent(input$show_dlgFriedman, {
@@ -961,8 +1017,6 @@ server_iskay <- function(input, output, session) {
     )
   })
   
-  
-    
   # J-T table results 
   output$ou_dtjonck  <-  DT::renderDataTable({
     

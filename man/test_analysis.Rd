@@ -5,7 +5,7 @@
 \title{Return tables (data frames) derived from statistical analysis}
 \usage{
 test_analysis(x, y, hyp, param, jud, test = "friedman", sg = 0.05,
-  comparison = FALSE)
+  comp = FALSE)
 }
 \arguments{
 \item{x}{independent variable}

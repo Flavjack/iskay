@@ -128,6 +128,7 @@ $(document).ready(function () {
 <p>This file attemps to make an internal documentation for iskay nonparametric data analysis application. It includes:</p>
 <ol style="list-style-type: decimal">
 <li><p>Input and output object names</p></li>
+<li><p>Import data</p></li>
 <li><p>Dialogs event buttons</p></li>
 <li><p>Combobox options buttons</p></li>
 <li><p>Tables</p></li>
@@ -140,6 +141,14 @@ $(document).ready(function () {
 <li><code>ou_name</code>: widgets’ name, for renderUI especifically, that use in the server</li>
 <li><code>sel_name</code>: widget’s name for selectInput in the server. It goes inside renderUI</li>
 <li><code>ou_dtname</code>: widget’s name for data tables running in the server.</li>
+</ul>
+</div>
+<div id="import-data" class="section level2">
+<h2>Import data</h2>
+<ul>
+<li><code>uin_fb_import</code>: widgets’ name for fileInput. Upload data event for posterior d.analysis.</li>
+<li><code>ou_sheets</code>: widget renderer that run in the server.</li>
+<li><code>show_dlgImport</code>: widget for importing file dialog.</li>
 </ul>
 </div>
 <div id="show-dialogs" class="section level2">
@@ -176,8 +185,14 @@ $(document).ready(function () {
 </tr>
 </tbody>
 </table>
+<p>According to each test, <code>cbTable_abbre_test</code> show a different type of combo:</p>
+<ul>
+<li><p>Global summary: <strong>wilcoxon</strong>, <strong>mann-whitney</strong>, <strong>kruskal-wallis</strong>, <strong>median</strong>, <strong>durbin</strong>, <strong>friedman</strong>.</p></li>
+<li><p>Multiple comparison: <strong>wilcoxon</strong>, <strong>mann-whitney</strong>, <strong>kruskal-wallis</strong>, <strong>median</strong>, <strong>durbin</strong>, <strong>friedman</strong>.</p></li>
+<li><p>Paired comparison: <strong>kruskal-wallis</strong>, <strong>median</strong>, <strong>durbin</strong>, <strong>friedman</strong>.</p></li>
+</ul>
 </div>
-<div id="import-data" class="section level2">
+<div id="import-data-1" class="section level2">
 <h2>Import data</h2>
 <ul>
 <li><code>show_dlgImport</code>.</li>
@@ -188,19 +203,27 @@ $(document).ready(function () {
 <h2>Tables for test results</h2>
 <p>There are three types of tables:</p>
 <ul>
-<li><p><code>ou_dt(test_abvreviation)_gsum</code></p></li>
-<li><p>Type: <strong>DataTable</strong>.</p></li>
-<li><p>Description: descriptive summary. Ex: <code>ou_dtmanw_gsum</code> (Mann-Withney summary descriptive).</p></li>
+<li><code>ou_dt(test_abvreviation)_gsum</code></li>
 </ul>
-<p><code>ou_dt(test_abbreviation)</code></p>
+<p>Type: <strong>DataTable</strong>.</p>
+<p>Description: descriptive summary. Ex: <code>ou_dtmanw_gsum</code> (Mann-Withney summary descriptive).</p>
 <ul>
-<li><p>Type: <strong>DataTable</strong>.</p></li>
-<li><p>Description: p-values, mean or median multiple comparison. Ex. <code>ou_dtmanw</code> (Mann-Whitney analysis results/table),</p></li>
-<li><p><code>out_dt(test_abbreviation)_pair</code></p></li>
-<li><p>Type: <strong>DataTable</strong>.</p></li>
-<li><p>Description: paired comparison. Ex. <code>ou_dtfriedman_pair</code> (Friedman test paired comparison table).</p></li>
-<li><p><code>test_result</code>: Type: **DataTable* Reactive data. Storage the results for each test using the tabName (tab name for each test).</p></li>
+<li><code>ou_dt(test_abbreviation)</code></li>
 </ul>
+<p>Type: <strong>DataTable</strong>.</p>
+<p>Description: p-values, mean or median multiple comparison. Ex. <code>ou_dtmanw</code> (Mann-Whitney analysis results/table),</p>
+<ul>
+<li><code>out_dt(test_abbreviation)_pair</code></li>
+</ul>
+<p>Type: <strong>DataTable</strong>.</p>
+<p>Description: paired comparison. Ex. <code>ou_dtfriedman_pair</code> (Friedman test paired comparison table).</p>
+</div>
+<div id="test-results" class="section level2">
+<h2>Test results</h2>
+<ul>
+<li><code>test_result</code>: Type: <strong>Reactive data</strong></li>
+</ul>
+<p>Description: Reactive data. Storage the results for each test using the tabName (tab name for each test).</p>
 </div>
 <div id="friedman-test-inputs-and-outputs" class="section level2">
 <h2>Friedman Test: Inputs and outputs</h2>

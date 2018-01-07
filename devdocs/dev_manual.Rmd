@@ -55,6 +55,13 @@ This list includes thre main columns:
   kable(pt) 
 ```
 
+According to each test, `cbTable_abbre_test` show a different type of combo:
+
+- Global summary: **wilcoxon**, **mann-whitney**, **kruskal-wallis**, **median**, **durbin**, **friedman**.
+
+- Multiple comparison: **wilcoxon**, **mann-whitney**, **kruskal-wallis**, **median**, **durbin**, **friedman**.
+
+- Paired comparison: **kruskal-wallis**, **median**, **durbin**, **friedman**. 
 
 ## Import data 
 
