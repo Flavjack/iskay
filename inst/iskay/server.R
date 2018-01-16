@@ -7,6 +7,9 @@ library(dplyr)
 library(exactRankTests)
 library(broom)
 library(clinfun)
+library(radarchart)
+library(htmlwidgets)
+library(htmltools)
 
 server_iskay <- function(input, output, session) {    
   
@@ -29,12 +32,12 @@ server_iskay <- function(input, output, session) {
   # Import Data Reactive Values
   importData <- reactive({
     
-    req(input$uin_fb_import)
-    req(input$sel_input_sheet)
+    #req(input$uin_fb_import)
+    #req(input$sel_input_sheet)
     sheet <- input$sel_input_sheet
     fb_temp <- input$uin_fb_import
     
-    if(is.null(fb_temp)){return()}
+    if(is.null(fb_temp)){data.frame()}
     if(!is.null(fb_temp)){
       
       file.copy(fb_temp$datapath,paste(fb_temp$datapath, ".xlsx", sep=""))
@@ -52,8 +55,8 @@ server_iskay <- function(input, output, session) {
     #Incluir resumen de datos de forma general
     #Incluir diferencias por pares A B PVALUE
     
-    req(input$uin_fb_import)
-    req(input$sel_input_sheet)
+    #req(input$uin_fb_import)
+    #req(input$sel_input_sheet)
     
     ctab <- input$tabs #get current tab
     fb <- importData()
@@ -109,7 +112,7 @@ server_iskay <- function(input, output, session) {
       if(is.element('pcom', input$cbTables_durbin)) {comp <-  TRUE}
       
       #durbin test
-      out_test <- try(test_analysis(x= trt_col, y = trait_col , jud = jug_col, test = "durbin",comp = ))
+      out_test <- try(test_analysis(x= trt_col, y = trait_col , jud = jug_col, test = "durbin",comp = comp))
       out <- append(out_test, glbdt)
     }
     
@@ -126,8 +129,8 @@ server_iskay <- function(input, output, session) {
       #global summary
       glbdt <-  try(glb_summary(fb, y = trait) %>% as.data.frame() %>% list(glbdt = .))
       
-      comp <- FALSE #by default there is no pair comparison ultil pressing 
-      if(is.element('pcom', input$cbTables_frman)) {comp <-  TRUE}
+      comp <- TRUE #by default there is no pair comparison ultil pressing 
+      #if(is.element('pcom', input$cbTables_frman)) {comp <-  TRUE}
       
       #friedman test
       out_test <- try(test_analysis(x= trt_col, y = trait_col , jud = jug_col, test = "friedman", comp = comp))
@@ -159,7 +162,7 @@ server_iskay <- function(input, output, session) {
       trt_col <- fb[, trt]
       
       trait <- input$sel_input_traitmed
-      trait_col <- fb[, trait]
+      trait_col <- fb[, trait] %>% pull() %>% as.numeric()
       
       #Global summary
       glbdt <-  try(glb_summary(fb, y = trait) %>% as.data.frame() %>% list(glbdt = .))
@@ -221,8 +224,9 @@ server_iskay <- function(input, output, session) {
   
   output$ou_Xwilcox2 <- renderUI({
     
-    req(input$uin_fb_import)
-    req(input$sel_input_sheet)
+    #req(input$uin_fb_import)
+    #req(input$sel_input_sheet)
+    print(importData())
     fb_cols <- names(importData())  
     shiny::selectizeInput(inputId = "sel_input_Xwilcox2", label = "Select variable X", 
                           choices = fb_cols, selected = 1, width = NULL,
@@ -236,8 +240,8 @@ server_iskay <- function(input, output, session) {
   
   output$ou_Ywilcox2 <- renderUI({
     
-    req(input$uin_fb_import)
-    req(input$sel_input_sheet)
+    #req(input$uin_fb_import)
+    #req(input$sel_input_sheet)
     fb_cols <- names(importData())
     shiny::selectizeInput(inputId = "sel_input_Ywilcox2", label = "Select variable Y", 
                           choices = fb_cols, selected = 1, width = NULL,
@@ -251,6 +255,10 @@ server_iskay <- function(input, output, session) {
   
   #dtwilcox for general summary
   output$ou_dtwilcox2_gsum  <-  DT::renderDataTable({
+    
+    req(input$sel_input_Xwilcox2)
+    req(input$sel_input_Ywilcox2)
+    
     out <- test_result()  
     #print(out)
     glbdt <- out$glbdt
@@ -289,7 +297,7 @@ server_iskay <- function(input, output, session) {
                           shiny::incProgress(amount = 1/2, "loading results")
                           var_sheet <- paste("Wilcoxon2General", "Summary", sep="_")
                           DT::datatable( dt, rownames = FALSE,
-                                         filter = 'top',
+                                         #filter = 'top',
                                          extensions = c('Buttons', 'Scroller'),
                                          #selection = list( mode= "multiple",  selected =  rownames(mtl_table)),
                                          options = list(pageLength = 5,
@@ -326,8 +334,8 @@ server_iskay <- function(input, output, session) {
   
   output$ou_Xmanw <- renderUI({
     
-    req(input$uin_fb_import)
-    req(input$sel_input_sheet)
+    #req(input$uin_fb_import)
+    #req(input$sel_input_sheet)
     fb_cols <- names(importData())
     shiny::selectizeInput(inputId = "sel_input_Xmanw", label = "Select variable X", 
                           choices = fb_cols, selected = 1, width = NULL,
@@ -341,8 +349,8 @@ server_iskay <- function(input, output, session) {
   
   output$ou_Ymanw <- renderUI({
     
-    req(input$uin_fb_import)
-    req(input$sel_input_sheet)
+    #req(input$uin_fb_import)
+    #req(input$sel_input_sheet)
     fb_cols <- names(importData())
     shiny::selectizeInput(inputId = "sel_input_Ymanw", label = "Select variable Y", 
                           choices = fb_cols, selected = 1, width = NULL,
@@ -383,7 +391,7 @@ server_iskay <- function(input, output, session) {
   # Mann-Whitney table results ----------------------------------------------
   output$ou_dtmanw  <-  DT::renderDataTable({
     
-    shiny::req(input$uin_fb_import)
+    #shiny::req(input$uin_fb_import)
     shiny::req(input$sel_input_Xmanw)
     shiny::req(input$sel_input_Ymanw)
     
@@ -395,10 +403,10 @@ server_iskay <- function(input, output, session) {
                           
                           shiny::incProgress(amount = 1/2, "loading results")
                           
-                          var_sheet <- paste("Median","Test", sep="_")
+                          var_sheet <- paste("MannW","Test", sep="_")
                           
                           DT::datatable( dt, rownames = FALSE, 
-                                         filter = 'top',
+                                         #filter = 'top',
                                          extensions = c('Buttons', 'Scroller'),
                                          #selection = list( mode= "multiple",  selected =  rownames(mtl_table)), 
                                          options = list(scrollX = TRUE, 
@@ -436,8 +444,8 @@ server_iskay <- function(input, output, session) {
   
   output$ou_jugdurbin <- renderUI({
     
-    req(input$uin_fb_import)
-    req(input$sel_input_sheet)
+    #req(input$uin_fb_import)
+    #req(input$sel_input_sheet)
     
 
     
@@ -454,8 +462,8 @@ server_iskay <- function(input, output, session) {
   
   output$ou_trtdurbin <- renderUI({
     
-    req(input$uin_fb_import)
-    req(input$sel_input_sheet)
+    #req(input$uin_fb_import)
+    #req(input$sel_input_sheet)
     fb_cols <- names(importData())
     shiny::selectizeInput(inputId = "sel_input_trtdurbin", label = "Select treatments",
                           choices = fb_cols, selected = 1, width = NULL,
@@ -471,8 +479,8 @@ server_iskay <- function(input, output, session) {
   
   output$ou_traitdurbin <- renderUI({
     
-    req(input$uin_fb_import)
-    req(input$sel_input_sheet)
+    #req(input$uin_fb_import)
+    #req(input$sel_input_sheet)
     fb_cols <- names(importData())
     shiny::selectizeInput(inputId = "sel_input_traitdurbin", label = "Select trait", 
                           choices = fb_cols, selected = 1, width = NULL,
@@ -484,7 +492,7 @@ server_iskay <- function(input, output, session) {
     
   })
   
-  #dtdurbin for general summary
+  # dtdurbin for general summary
   output$ou_dtdurbin_gsum  <-  DT::renderDataTable({
     out <- test_result()  
     #print(out)
@@ -528,7 +536,7 @@ server_iskay <- function(input, output, session) {
                           var_sheet <- paste("durbin",trait, sep="_")
                           
                           DT::datatable( dt, rownames = FALSE, 
-                                         filter = 'top',
+                                         #filter = 'top',
                                          extensions = c('Buttons', 'Scroller'),
                                          #selection = list( mode= "multiple",  selected =  rownames(mtl_table)), 
                                          options = list(scrollX = TRUE, 
@@ -549,6 +557,48 @@ server_iskay <- function(input, output, session) {
     )
   })
   
+  # durbin paired comparison
+  output$ou_dtdurbin_pcom  <-  DT::renderDataTable({
+    
+    #shiny::req(input$uin_fb_import)
+    shiny::req(input$sel_input_juddurbin)
+    shiny::req(input$sel_input_trtdurbin)
+    shiny::req(input$sel_input_traitdurbin)
+    
+    trait <- input$sel_input_traitdurbin
+    out <- test_result()  
+    print(out)
+    dt <-  out$comparison
+    
+    shiny::withProgress(message = "Visualizing Table...",value= 0,  #withProgress
+                        {
+                          
+                          shiny::incProgress(amount = 1/2, "Loading results")
+                          var_sheet <- paste("friedman",trait, sep="")
+                          
+                          DT::datatable( dt, rownames = FALSE, 
+                                         #filter = 'top',
+                                         extensions = c('Buttons', 'Scroller'),
+                                         #selection = list( mode= "multiple",  selected =  rownames(mtl_table)), 
+                                         options = list(scrollX = TRUE, 
+                                                        scroller = TRUE,
+                                                        dom = 'Bfrtip',
+                                                        buttons = list(
+                                                          'copy',
+                                                          list(extend = 'csv',   filename = var_sheet),
+                                                          list(extend = 'excel', filename = var_sheet)
+                                                        )#,
+                                                        
+                                         )
+                                         #selection = list( mode = "multiple")#, 
+                                         #filter = 'bottom'#,
+                          )  
+                          
+                        }
+    )
+  })
+  
+  
   # Help dialogue for Durbin Test ---------------------------------------------------
   
   observeEvent(input$show_dlgDurbin, {
@@ -567,8 +617,8 @@ server_iskay <- function(input, output, session) {
   
   output$ou_jugfrman <- renderUI({
     
-    req(input$uin_fb_import)
-    req(input$sel_input_sheet)
+    #req(input$uin_fb_import)
+    #req(input$sel_input_sheet)
     fb_cols <- names(importData())
     shiny::selectizeInput(inputId = "sel_input_judfrman", 
                           label = "Select judges",choices = fb_cols, selected = 1, width = NULL,
@@ -582,8 +632,8 @@ server_iskay <- function(input, output, session) {
   
   output$ou_trtfrman <- renderUI({
     
-    req(input$uin_fb_import)
-    req(input$sel_input_sheet)
+    #req(input$uin_fb_import)
+    #req(input$sel_input_sheet)
     fb_cols <- names(importData())
     shiny::selectizeInput(inputId = "sel_input_trtfrman", label = "Select treatments",
                           choices = fb_cols, selected = 1, width = NULL,
@@ -599,8 +649,8 @@ server_iskay <- function(input, output, session) {
   
   output$ou_traitfrman <- renderUI({
     
-    req(input$uin_fb_import)
-    req(input$sel_input_sheet)
+    #req(input$uin_fb_import)
+    #req(input$sel_input_sheet)
     fb_cols <- names(importData())
     shiny::selectizeInput(inputId = "sel_input_traitfrman", label = "Select trait", 
                           choices = fb_cols, selected = 1, width = NULL,
@@ -623,9 +673,13 @@ server_iskay <- function(input, output, session) {
                           
                           shiny::incProgress(amount = 1/2, "loading results")
                           var_sheet <- paste("FriedmanGeneral", "Summary", sep="_")
-                          DT::datatable(glbdt, rownames = FALSE,
-                                        extensions = c('Buttons'),
-                                        options = list( dom = 'Bfrtip',
+                          DT::datatable( dt, rownames = FALSE, 
+                                         #filter = 'top',
+                                         extensions = c('Buttons', 'Scroller'),
+                                         #selection = list( mode= "multiple",  selected =  rownames(mtl_table)), 
+                                         options = list(scrollX = TRUE, 
+                                                        scroller = TRUE,
+                                                        dom = 'Bfrtip',
                                                         buttons = list(
                                                           'copy',
                                                           list(extend = 'csv',   filename = var_sheet),
@@ -640,10 +694,10 @@ server_iskay <- function(input, output, session) {
   # Friedman table results ------------------------------------------------------------
   output$ou_dtfrman  <-  DT::renderDataTable({
     
-    shiny::req(input$uin_fb_import)
-    shiny::req(input$sel_input_judfrman)
-    shiny::req(input$sel_input_trtfrman)
-    shiny::req(input$sel_input_traitfrman)
+    #shiny::req(input$uin_fb_import)
+    #shiny::req(input$sel_input_judfrman)
+    #shiny::req(input$sel_input_trtfrman)
+    #shiny::req(input$sel_input_traitfrman)
     
     trait <- input$sel_input_traitfrman
     out <- test_result()  
@@ -652,11 +706,11 @@ server_iskay <- function(input, output, session) {
     shiny::withProgress(message = "Visualizing Table...",value= 0,  #withProgress
                         {
                           
-                          shiny::incProgress(amount = 1/2, "loadgin results")
+                          shiny::incProgress(amount = 1/2, "loading results")
                           var_sheet <- paste("friedman",trait, sep="")
                           
                           DT::datatable( dt, rownames = FALSE, 
-                                         filter = 'top',
+                                         #filter = 'top',
                                          extensions = c('Buttons', 'Scroller'),
                                          #selection = list( mode= "multiple",  selected =  rownames(mtl_table)), 
                                          options = list(scrollX = TRUE, 
@@ -667,7 +721,6 @@ server_iskay <- function(input, output, session) {
                                                           list(extend = 'csv',   filename = var_sheet),
                                                           list(extend = 'excel', filename = var_sheet)
                                                         )#,
-                                                        
                                          )
                                          #selection = list( mode = "multiple")#, 
                                          #filter = 'bottom'#,
@@ -679,11 +732,11 @@ server_iskay <- function(input, output, session) {
   
   # friedman paired comparison
   output$ou_dtfrman_pcom  <-  DT::renderDataTable({
-    
-    shiny::req(input$uin_fb_import)
-    shiny::req(input$sel_input_judfrman)
-    shiny::req(input$sel_input_trtfrman)
-    shiny::req(input$sel_input_traitfrman)
+    # 
+    # shiny::req(input$uin_fb_import)
+    # shiny::req(input$sel_input_judfrman)
+    # shiny::req(input$sel_input_trtfrman)
+    # shiny::req(input$sel_input_traitfrman)
     
     trait <- input$sel_input_traitfrman
     out <- test_result()  
@@ -696,7 +749,7 @@ server_iskay <- function(input, output, session) {
                           var_sheet <- paste("friedman",trait, sep="")
                           
                           DT::datatable( dt, rownames = FALSE, 
-                                         filter = 'top',
+                                         #filter = 'top',
                                          extensions = c('Buttons', 'Scroller'),
                                          #selection = list( mode= "multiple",  selected =  rownames(mtl_table)), 
                                          options = list(scrollX = TRUE, 
@@ -709,8 +762,6 @@ server_iskay <- function(input, output, session) {
                                                         )#,
                                                         
                                          )
-                                         #selection = list( mode = "multiple")#, 
-                                         #filter = 'bottom'#,
                           )  
                           
                         }
@@ -737,8 +788,8 @@ server_iskay <- function(input, output, session) {
   
   output$ou_trtkru <- renderUI({
     
-    req(input$uin_fb_import)
-    req(input$sel_input_sheet)
+    #req(input$uin_fb_import)
+    #req(input$sel_input_sheet)
     fb_cols <- names(importData())
     shiny::selectizeInput(inputId = "sel_input_trtkru", label = "Select treatments",
                           choices = fb_cols, selected = 1, width = NULL,
@@ -754,8 +805,8 @@ server_iskay <- function(input, output, session) {
   
   output$ou_traitkru <- renderUI({
     
-    req(input$uin_fb_import)
-    req(input$sel_input_sheet)
+    #req(input$uin_fb_import)
+    #req(input$sel_input_sheet)
     fb_cols <- names(importData())
     shiny::selectizeInput(inputId = "sel_input_traitkru", label = "Select trait", 
                           choices = fb_cols, selected = 1, width = NULL,
@@ -812,7 +863,46 @@ server_iskay <- function(input, output, session) {
                           var_sheet <- paste("kruskal",trait, sep="_")
                           
                           DT::datatable( dt, rownames = FALSE, 
-                                         filter = 'top',
+                                         #filter = 'top',
+                                         extensions = c('Buttons', 'Scroller'),
+                                         #selection = list( mode= "multiple",  selected =  rownames(mtl_table)), 
+                                         options = list(scrollX = TRUE, 
+                                                        scroller = TRUE,
+                                                        dom = 'Bfrtip',
+                                                        buttons = list(
+                                                          'copy',
+                                                          list(extend = 'csv',   filename = var_sheet),
+                                                          list(extend = 'excel', filename = var_sheet)
+                                                        )#,
+                                                        
+                                         )
+                                         #selection = list( mode = "multiple")#, 
+                                         #filter = 'bottom'#,
+                          )  
+                          
+                        }
+    )
+  })
+
+  # kruskal-wallis paired comparison
+  output$ou_dtkru_pcom  <-  DT::renderDataTable({
+    
+    shiny::req(input$uin_fb_import)
+    shiny::req(input$sel_input_trtkru)
+    shiny::req(input$sel_input_traitkru)
+    
+    trait <- input$sel_input_traitkru
+    out <- test_result()  
+    dt <- out$comparison
+    
+    shiny::withProgress(message = "Visualizing Table...",value= 0,  #withProgress
+                        {
+                          
+                          shiny::incProgress(amount = 1/2, "Loading results")
+                          var_sheet <- paste("friedman",trait, sep="")
+                          
+                          DT::datatable( dt, rownames = FALSE, 
+                                         #filter = 'top',
                                          extensions = c('Buttons', 'Scroller'),
                                          #selection = list( mode= "multiple",  selected =  rownames(mtl_table)), 
                                          options = list(scrollX = TRUE, 
@@ -833,6 +923,7 @@ server_iskay <- function(input, output, session) {
     )
   })
   
+  
   # Help dialogue for Kruskal Test ----------------------------------------------------
   
   observeEvent(input$show_dlgKruskal, {
@@ -851,8 +942,8 @@ server_iskay <- function(input, output, session) {
   # treatment input for median test
   output$ou_trtmed <- renderUI({
     
-    req(input$uin_fb_import)
-    req(input$sel_input_sheet)
+    #req(input$uin_fb_import)
+    #req(input$sel_input_sheet)
     fb_cols <- names(importData())
     shiny::selectizeInput(inputId = "sel_input_trtmed", label = "Select treatments",
                           choices = fb_cols, selected = 1, width = NULL,
@@ -869,8 +960,8 @@ server_iskay <- function(input, output, session) {
   # trait input for median test
   output$ou_traitmed <- renderUI({
     
-    req(input$uin_fb_import)
-    req(input$sel_input_sheet)
+    #req(input$uin_fb_import)
+    #req(input$sel_input_sheet)
     fb_cols <- names(importData())
     shiny::selectizeInput(inputId = "sel_input_traitmed", label = "Select trait", 
                           choices = fb_cols, selected = 1, width = NULL,
@@ -925,7 +1016,7 @@ server_iskay <- function(input, output, session) {
                           var_sheet <- paste("median",trait, sep="_")
                           
                           DT::datatable( dt, rownames = FALSE, 
-                                         filter = 'top',
+                                         #filter = 'top',
                                          extensions = c('Buttons', 'Scroller'),
                                          #selection = list( mode= "multiple",  selected =  rownames(mtl_table)), 
                                          options = list(scrollX = TRUE, 
@@ -941,6 +1032,45 @@ server_iskay <- function(input, output, session) {
                                  )  
                           
                           
+                          
+                        }
+    )
+  })
+  
+  # median paired comparison
+  output$ou_dtmed_pcom  <-  DT::renderDataTable({
+    
+    shiny::req(input$uin_fb_import)
+    shiny::req(input$sel_input_trtmed)
+    shiny::req(input$sel_input_traitmed)
+    
+    trait <- input$sel_input_traitmed
+    out <- test_result()  
+    dt <- out$comparison
+    
+    shiny::withProgress(message = "Visualizing Table...",value= 0,  #withProgress
+                        {
+                          
+                          shiny::incProgress(amount = 1/2, "Loading results")
+                          var_sheet <- paste("median",trait, sep="_")
+                          
+                          DT::datatable( dt, rownames = FALSE, 
+                                         #filter = 'top',
+                                         extensions = c('Buttons', 'Scroller'),
+                                         #selection = list( mode= "multiple",  selected =  rownames(mtl_table)), 
+                                         options = list(scrollX = TRUE, 
+                                                        scroller = TRUE,
+                                                        dom = 'Bfrtip',
+                                                        buttons = list(
+                                                          'copy',
+                                                          list(extend = 'csv',   filename = var_sheet),
+                                                          list(extend = 'excel', filename = var_sheet)
+                                                        )#,
+                                                        
+                                         )
+                                         #selection = list( mode = "multiple")#, 
+                                         #filter = 'bottom'#,
+                          )  
                           
                         }
     )
@@ -963,8 +1093,8 @@ server_iskay <- function(input, output, session) {
   
   output$ou_trtjonck <- renderUI({
     
-    req(input$uin_fb_import)
-    req(input$sel_input_sheet)
+    #req(input$uin_fb_import)
+    #req(input$sel_input_sheet)
     fb_cols <- names(importData())
     shiny::selectizeInput(inputId = "sel_input_trtjonck", label = "Select treatments",
                           choices = fb_cols, selected = 1, width = NULL,
@@ -980,8 +1110,8 @@ server_iskay <- function(input, output, session) {
   
   output$ou_traitjonck <- renderUI({
     
-    req(input$uin_fb_import)
-    req(input$sel_input_sheet)
+    #req(input$uin_fb_import)
+    #req(input$sel_input_sheet)
     fb_cols <- names(importData())
     shiny::selectizeInput(inputId = "sel_input_traitjonck", label = "Select trait", 
                           choices = fb_cols, selected = 1, width = NULL,
@@ -1024,6 +1154,7 @@ server_iskay <- function(input, output, session) {
     shiny::req(input$sel_input_trtjonck)
     shiny::req(input$sel_input_traitjonck)
     
+    trait <- input$sel_input_traitjonck
     out <- test_result()  
     dt <- out$statistic
     
@@ -1035,7 +1166,7 @@ server_iskay <- function(input, output, session) {
                           var_sheet <- paste("jonckheere", trait, sep="_")
                           
                           DT::datatable( dt, rownames = FALSE, 
-                                         filter = 'top',
+                                         #filter = 'top',
                                          extensions = c('Buttons', 'Scroller'),
                                          #selection = list( mode= "multiple",  selected =  rownames(mtl_table)), 
                                          options = list(scrollX = TRUE, 
@@ -1067,5 +1198,113 @@ server_iskay <- function(input, output, session) {
     ))
   })
   
+  # Radar plot --------------------------------------------------------------
+
+  output$ou_trtRadar <- renderUI({
+    
+    #req(input$uin_fb_import)
+    #req(input$sel_input_sheet)
+    fb_cols <- names(importData())
+    shiny::selectizeInput(inputId = "sel_input_trtradar", label = "Select trait", 
+                          choices = fb_cols, selected = 1, width = NULL,
+                          options = list(
+                            placeholder = 'Select treatments',
+                            onInitialize = I('function() { this.setValue(""); }')
+                          )
+    )
+    
+  })
+
+  output$ou_lvlRadar <- renderUI({
+    
+    req(input$sel_input_traitRadar)
+    trt <- input$sel_input_trtRadar
+    lvl_trt <- trt %>% unique()
+    #fb_cols <- names(importData())
+    shiny::selectizeInput(inputId = "sel_input_lvlradar", label = "Select trait",
+                          choices = lvl_trt, selected = 1, width = NULL, multiple =TRUE,
+                          options = list(
+                            placeholder = 'Select treatments',
+                            onInitialize = I('function() { this.setValue(""); }')
+                          )
+    )
+    
+  })
+  
+  
+  output$ou_traitRadar <- renderUI({
+
+    #req(input$sel_input_traitRadar)
+    trait <- input$sel_input_trtRadar
+    fb_cols <- names(importData())
+    fb_cols <- fb_cols[fb_cols!=input$sel_input_trtradar]
+    shiny::selectizeInput(inputId = "sel_input_traitradar", label = "Select trait",
+                          choices = fb_cols, selected = fb_cols, width = NULL, multiple =TRUE,
+                          options = list(
+                            placeholder = 'Select treatments',
+                            onInitialize = I('function() { this.setValue(""); }')
+                          )
+    )
+  })
+  
+  
+  # output$ou_lblRadar <- renderUI({
+  #   req(sel_input_traitradar)
+    
+    # pickerInput(inputId = "Id008", 
+    #             label = "With plain HTML", 
+    #             choices = paste("Badge", c("info", 
+    #                                        "success", "danger", "primary", 
+    #                                        "warning")), multiple = TRUE, 
+    #             selected = "Badge danger", 
+    #             choicesOpt = list(content = sprintf("<span class='label label-%s'>%s</span>", 
+    #                                                    , 
+    #                                                 paste("Badge", c("info", 
+    #                                                                  "success", "danger", 
+    #                                                                  "primary", "warning")))))
+    
+  #})
+  
+  
+  output$radar <- renderChartJSRadar({
+    
+    #req(input$sel_input_trtRadar)
+    fb <- importData()
+    #dt <- iskay::grp_summary(data = ,group = input$sel_input_trtRadarg, y = )
+    
+    # dt <- dt %>% group_by_(input$sel_input_trtRadarg) %>% summarise_all(funs(median))
+    # dt <- dt %>% t() 
+    # 
+    dt <- fb %>% group_by_(input$sel_input_trtRadarg) %>% 
+                 summarise_all(funs(mean)) %>% 
+                 t() %>% 
+                 as.data.frame() %>% 
+                 tibble::rownames_to_column() %>% 
+                 purrr::map(as.vector) %>% 
+                 as.data.frame(stringsAsFactors = FALSE)
+    
+    dt_header <- dt[1,] %>% as.character()            
+     
+    dt <- dt %>% 
+          slice(-1) %>% 
+          purrr::map(as.vector) %>% 
+          map_at(.at = 2:4, as.numeric) %>% 
+          as.data.frame()  
+    
+    colnames(dt) <- dt_header
+    
+    #skills <- skills
+    chartJSRadar(skills[, c("Label", input$selectedtrait)],
+                 maxScale = 10, showToolTipLabel=TRUE)
+    #label <- sel_input_trtradar
+    # chartJSRadar(dt[, c(label, input$selectedtrait)], maxScale = 10, showToolTipLabel=TRUE)
+    
+    
+    #out
+  })  
+  
+  
   
 } #end server_iskay
+
+

@@ -7,6 +7,8 @@ library(dplyr)
 library(exactRankTests)
 library(broom)
 library(clinfun)
+library(radarchart)
+data("skills")
 
 ui <- dashboardPage(
   skin = "yellow",
@@ -17,10 +19,11 @@ ui <- dashboardPage(
                   tags$li(
                     class = "dropdown",
                     tags$a(
-                      href = "http://twitter.com/share?url=https://foocheung.shinyapps.io/soma_stats/&text=Web Tool For Navigating and Plotting ADAT files",
+                      #href = "http://twitter.com/share?url=https://foocheung.shinyapps.io/soma_stats/&text=Web Tool For Navigating and Plotting ADAT files",
+                      href = "http://www.quipo.org" ,
                       target = "_blank",
                       tags$img(height = "18px",
-                               src = "twitter.png")
+                               src = "quipo.png")
                     )
                   ),
                   
@@ -84,8 +87,8 @@ ui <- dashboardPage(
                               
                               menuItem("One sample k-measures",
                                        menuSubItem("Durbin Test", tabName = "tdurbinTab", icon = icon("file")),
-                                       menuSubItem("Friedman Test", tabName = "tfriedmanTab", icon = icon("file-o")),
-                                       menuSubItem("Kendall Test", tabName = "tkendallTab", icon = icon("file-text-o"))
+                                       menuSubItem("Friedman Test", tabName = "tfriedmanTab", icon = icon("file-o"))#,
+                                       #menuSubItem("Kendall Test", tabName = "tkendallTab", icon = icon("file-text-o"))
                                        #menuSubItem("Check fieldbook", tabName = "checkFieldbook", icon = icon("eraser")),
                                        #menuSubItem("", tabName = "", icon = icon("file-text-o"))
                               ),
@@ -119,8 +122,8 @@ ui <- dashboardPage(
                      menuItem("GraphLab", icon=icon("th-list"),
                               
                               
-                              menuItem("Graphics 2",
-                                       menuSubItem("graphics 3", tabName = "tGraphics", icon = icon("file"))
+                              menuItem("Visualization tools",
+                                       menuSubItem("Radar plot", tabName = "tradargrTab", icon = icon("file"))
                                        #menuSubItem("Open fieldbook", tabName = "openFieldbook", icon = icon("file-o")),
                                        #menuSubItem("Check fieldbook", tabName = "checkFieldbook", icon = icon("eraser")),
                                        #menuSubItem("Data transformation", tabName = "singleAnalysisTrans", icon = icon("file-text-o"))
@@ -148,7 +151,7 @@ ui <- dashboardPage(
                                 column(
                                   12,
                                   offset = 5,
-                                  img(src = 'quipoicon.png', align = "center")
+                                  img(src = 'quipo.png', align = "center")
                                 ),
                                 column(
                                   12,
@@ -205,7 +208,7 @@ ui <- dashboardPage(
                               fluidRow( #begin fluid row
                                 column(width = 3, 
                                        
-                                     box(#begin inputs box friedman
+                                     box(#begin inputs box wilcoxon
                                        title = "Wilcoxon Test", status = "primary", solidHeader = TRUE,
                                        collapsible = TRUE, width = 12,
                                        
@@ -220,12 +223,12 @@ ui <- dashboardPage(
                                       
                                        checkboxGroupInput("cbTables_wilcox2", "Options",selected = 2,
                                                           choiceNames =
-                                                            list("Global summary", "Multiple comparison"),
+                                                            list("Global summary", "Hyp. testing values"),
                                                           choiceValues = list("gsum", "mulcom" )
                                        ),
                                        actionButton("show_dlgWilcox2", "Help", icon("question-circle"),
                                                       style = "color: #fff; background-color: #337ab7; border-color: #2e6da4")
-                                       ) #end box friedman
+                                       ) #end box wilcoxon
                                 ),
                                 column(width = 9, 
                                        
@@ -286,9 +289,9 @@ ui <- dashboardPage(
                                          
                                          checkboxGroupInput("cbTables_manw", "Options",
                                                             choiceNames =
-                                                              list("Global summary", "Multiple comparison"),
-                                                            choiceValues =
-                                                              list("gsum", "mulcom")
+                                                              list("Global summary", "Hyp. testing values"),
+                                                            choiceValues = list("gsum", "mulcom"),
+                                                            selected = c('gsum','mulcom')
                                          ),
                                          
                                          actionButton("show_dlgManW", "Help", icon("question-circle"),
@@ -337,7 +340,7 @@ ui <- dashboardPage(
                                        
                                        box(#begin inputs box friedman
                                          title = "Friedman Test", status = "primary", solidHeader = TRUE,
-                                         collapsible = TRUE, width = NULL,
+                                         collapsible = TRUE, width = NULL,height = 500,
                                          
                                          uiOutput("ou_jugfrman"),
                                          uiOutput("ou_trtfrman"),
@@ -348,7 +351,8 @@ ui <- dashboardPage(
                                                               list("Global summary", "Multiple comparison",
                                                                    "Paired comparison" ),
                                                             choiceValues =
-                                                              list("gsum", "mulcom", "pcom")
+                                                              list("gsum", "mulcom", "pcom"),
+                                                            selected = c(1,2)
                                          ),
                                          
                                          actionButton("show_dlgFriedman", "Help", icon("question-circle"),
@@ -382,13 +386,16 @@ ui <- dashboardPage(
                                         )
                                        ),
                                        
-                                       box(#begin inputs box friedman
-                                         title = "Paired comparison", status = "primary", solidHeader = TRUE,
-                                         collapsible = TRUE, width = 12,
+                                       conditionalPanel(
+                                         condition = "input.cbTables_frman.includes('pcom')",
                                          
-                                         DT::dataTableOutput("ou_dtfrman_pcom")
+                                           box(#begin inputs box friedman
+                                             title = "Paired comparison", status = "primary", solidHeader = TRUE,
+                                             collapsible = TRUE, width = 12,
+                                             
+                                             DT::dataTableOutput("ou_dtfrman_pcom")
+                                           )
                                        )
-                                       
                                        
                                        
                                        
@@ -410,7 +417,7 @@ ui <- dashboardPage(
                                        
                                        box(#begin inputs box durbin
                                          title = "Durbin Test", status = "primary", solidHeader = TRUE,
-                                         collapsible = TRUE, width = NULL,
+                                         collapsible = TRUE, width = NULL,height = 500,
                                          
                                          uiOutput("ou_jugdurbin"),
                                          uiOutput("ou_trtdurbin"),
@@ -444,14 +451,23 @@ ui <- dashboardPage(
                                        
                                        conditionalPanel(
                                          condition = "input.cbTables_durbin.includes('mulcom')",
-                                         
-                                       
+                                      
                                        box(#begin inputs box durbin
                                            title = "Multiple comparison", status = "primary", solidHeader = TRUE,
                                            collapsible = TRUE, width = 12,
                                           DT::dataTableOutput("ou_dtdurbin")
                                         )
+                                      ),
+                                      
+                                      conditionalPanel(
+                                        condition = "input.cbTables_durbin.includes('pcom')",
+                                        box(#begin inputs box durbin
+                                            title = "Paired comparison", status = "primary", solidHeader = TRUE,
+                                            collapsible = TRUE, width = 12,
+                                            DT::dataTableOutput("ou_dtdurbin_pcom")
+                                        )
                                       )
+                                      
                                        
                                 )
                                 
@@ -470,7 +486,7 @@ ui <- dashboardPage(
                                        
                                        box(#begin inputs box kruskal
                                          title = "Kruskall-Wallis Test", status = "primary", solidHeader = TRUE,
-                                         collapsible = TRUE, width = NULL,
+                                         collapsible = TRUE, width = NULL,height = 500,
                                          
                                          uiOutput("ou_trtkru"),
                                          uiOutput("ou_traitkru"),
@@ -482,7 +498,8 @@ ui <- dashboardPage(
                                                             choiceValues =
                                                               list("gsum", "mulcom", "pcom")
                                          ),
-                                         
+                                         br(),
+                                         br(),
                                          actionButton("show_dlgkruskal", "Help", icon("question-circle"),
                                                       style = "color: #fff; background-color: #337ab7; border-color: #2e6da4")
                                        ) #end box kruskal
@@ -510,7 +527,19 @@ ui <- dashboardPage(
                                             
                                             DT::dataTableOutput("ou_dtkru")
                                         )
+                                      ),
+                                    
+                                    conditionalPanel(
+                                      condition = "input.cbTables_kru.includes('pcom')",
+                                      
+                                      
+                                      box(#begin inputs box friedman
+                                        title = "Paired comparison", status = "primary", solidHeader = TRUE,
+                                        collapsible = TRUE, width = 12,
+                                        
+                                        DT::dataTableOutput("ou_dtkru_pcom")
                                       )
+                                    )
                                 )
                                 
                               )    #end fluidrow 
@@ -528,7 +557,7 @@ ui <- dashboardPage(
                                        
                                        box(#begin inputs box med
                                          title = "Median Test", status = "primary", solidHeader = TRUE,
-                                         collapsible = TRUE, width = NULL,
+                                         collapsible = TRUE, width = NULL, height = 500,
                                          
                                          uiOutput("ou_trtmed"),
                                          uiOutput("ou_traitmed"),
@@ -566,17 +595,25 @@ ui <- dashboardPage(
                                        ), #end conditionalPanel for median
                                      
                                        conditionalPanel(
-                                         condition = "input.cbTables_med.includes('mulcom')",
-                                         
-                                        
-                                       box(#begin inputs box med
-                                            title = "Multiple comparison", status = "primary", solidHeader = TRUE,
-                                            collapsible = TRUE, width = 12,
+                                          condition = "input.cbTables_med.includes('mulcom')",
+                                          box(#begin inputs box med
+                                              title = "Multiple comparison", status = "primary", solidHeader = TRUE,
+                                              collapsible = TRUE, width = 12,
                                          
                                             DT::dataTableOutput("ou_dtmed")
                                        )
-                                    ) 
-                                )
+                                    ),
+                                    conditionalPanel(
+                                      condition = "input.cbTables_med.includes('pcom')",
+                                      
+                                      box(#begin inputs box friedman
+                                        title = "Paired comparison", status = "primary", solidHeader = TRUE,
+                                        collapsible = TRUE, width = 12,
+                                        
+                                        DT::dataTableOutput("ou_dtmed_pcom")
+                                      )
+                                    )
+                                 )
                                 
                               )    #end fluidrow 
       ), #end tab med test
@@ -593,7 +630,7 @@ ui <- dashboardPage(
                                        
                                        box(#begin inputs box kruskal
                                          title = "Jonckheere-Tepstra Test", status = "primary", solidHeader = TRUE,
-                                         collapsible = TRUE, width = NULL,
+                                         collapsible = TRUE, width = NULL,height = 500,
                                          
                                          uiOutput("ou_trtjonck"),
                                          uiOutput("ou_traitjonck"),
@@ -607,7 +644,7 @@ ui <- dashboardPage(
                                          
                                          checkboxGroupInput("cbTables_jonck", "Options",
                                                             choiceNames =
-                                                              list("Global summary", "Multiple comparison"),
+                                                              list("Global summary", "Hyp. testing values"),
                                                             choiceValues =
                                                               list("gsum", "mulcom")
                                          ),
@@ -645,9 +682,64 @@ ui <- dashboardPage(
                                 )
                                 
                               )    #end fluidrow 
-      ) #end tab jonck test
+      ), #end tab jonck test
       
       #--------------------------------------------------------------------------------------------
+      
+      
+      #tab for graphics: radar plot   -------------------------------------------------------------     
+      
+      shinydashboard::tabItem(tabName = "tradargrTab",
+                              #h2("wilcoxon Test"),
+                              
+                              fluidRow( #begin fluid row
+                                column(width = 3, 
+                                       
+                                       box(#begin inputs box wilcoxon
+                                         title = "Radar plot", status = "primary", solidHeader = TRUE,
+                                         collapsible = TRUE, width = 12, height = 500,
+                                         
+                                         uiOutput("ou_trtRadar"),
+                                         uiOutput("ou_traitRadar"),
+                                         uiOutput("ou_lvlRadar")
+                                         
+                                         
+                                       ) #end box wilcoxon
+                                ),
+                                column(width = 9,
+
+                                       #conditionalPanel(
+                                       # condition = "input.cbTables_wilcox2.includes('gsum')",
+
+                                         box(#begin inputs box wilcox2
+                                           title = "Descriptive statistics", status = "primary", solidHeader = TRUE,
+                                           collapsible = TRUE, width = 12,
+
+                                           #DT::dataTableOutput("ou_dtwilcox2")#,
+                                          chartJSRadarOutput("radar", width = "450", height = "300")
+                                         )
+
+                                       #)#, #end conditionalPanel for wilcox2
+
+                                       # conditionalPanel(
+                                       #   condition = "input.cbTables_wilcox2.includes('mulcom')",
+                                       #
+                                       #
+                                       #   box(#begin inputs box wilcox2
+                                       #     title = "Hypothesis testing", status = "primary", solidHeader = TRUE,
+                                       #     collapsible = TRUE, width = 12,
+                                       #
+                                       #     DT::dataTableOutput("ou_dtwilcox2")#,
+                                       #
+                                       #   )#,
+                                       # )
+                                )
+                                
+                              )    #end fluidrow 
+      ) #end tab   
+      
+      
+      #---------------------------------------------------------------------------------------
       
       
     ),

@@ -84,7 +84,7 @@ grp_summary <- function(data, group, y){
 #' @param sg Significant level. By defualt \code{alpha=0.05}
 #' @param comparison Wheter calculate comparison between samples means by treatment.
 #' @author Omar Benites
-#' @importFrom tibble data_frame
+#' @importFrom tibble data_frame rownames_to_column
 #' @importFrom dplyr group_by left_join select_
 #' @importFrom broom glance
 #' @importFrom agricolae kruskal friedman Median.test durbin.test
@@ -127,12 +127,12 @@ test_analysis <- function(x , y, hyp, param, jud, test = "friedman", sg = 0.05, 
     comparison <- outdurbin$comparison
    
     if(comp == TRUE){
-      out <-durbin.test(judge = jud, trt = x, evaluation = y, group = FALSE)
-      comparison <- out$comparison
+      out <- durbin.test(judge = jud, trt = x, evaluation = y, group = FALSE)
+      comparison <- out$comparison %>% rownames_to_column()
+      comparison <- iskay::rename_tables(comparison, c("Treatments","Difference","P-values","Sig."))                     
+      print(comparison)
     }
     
-    
-     
     out <- list(dt= dt, statistic = statistic, parameter = parameter, comparison= comparison )
   }
   
@@ -153,7 +153,9 @@ test_analysis <- function(x , y, hyp, param, jud, test = "friedman", sg = 0.05, 
     
     if(comp){
       out <- friedman( judge = jud, trt = x, evaluation = y, group=FALSE, alpha = sg)
-      comparison <- out$comparison
+      comparison <- out$comparison %>% rownames_to_column()
+      comparison <- iskay::rename_tables(comparison, c("Treatments","Difference","pvalue","sig.","LCL","UCL")) %>% 
+                    as.data.frame()
     }
 
     #dt: table of means and letters for significance differences
@@ -177,7 +179,9 @@ test_analysis <- function(x , y, hyp, param, jud, test = "friedman", sg = 0.05, 
       
       if(comp){
         out <- kruskal(y = y, trt = x, group = FALSE,alpha = sg)
-        comparison <-  out$comparison
+        comparison <- out$comparison %>% rownames_to_column()
+        comparison <- iskay::rename_tables(comparison, c("Treatments","Difference","P-value","Sig.","LCL", "UCL")) %>% 
+                      as.data.frame()
       }
       
       out <- list(dt= dt, statistic = statistic, parameter = parameter, comparison= comparison)
@@ -185,7 +189,7 @@ test_analysis <- function(x , y, hyp, param, jud, test = "friedman", sg = 0.05, 
   
   if(test == "median"){
     
-    out <- Median.test(y = y, trt = x, console=TRUE) #from agricolae
+    out <- Median.test(y = y, trt = x, console=FALSE) #from agricolae
     outmed <- out$Medians %>%   #median values
               rename_tables(c("Treatment", "Median", "grather", "lessEqual"))  
     #in this case x = y (response variable) , g : explanatory variable
@@ -199,7 +203,9 @@ test_analysis <- function(x , y, hyp, param, jud, test = "friedman", sg = 0.05, 
     
     statistic <- outmed$statistics
     parameter <- outmed$parameters
-    comparison <- out$comparison #derived from out.
+    comparison <- out$comparison 
+    comparison <- iskay::rename_tables(comparison, c("Treatments","Median","Chisq","P-value.","Sig.")) %>% 
+                  as.data.frame()
     
     out <- list(dt= dt, statistic = statistic, parameter = parameter, comparison= comparison)
     
@@ -208,7 +214,7 @@ test_analysis <- function(x , y, hyp, param, jud, test = "friedman", sg = 0.05, 
   if(test == "jonckheere"){
       #ToDo: g = x need to be numeric
       #0.0 ---> In this case x =y (response variable) and g =x (independent variable) 
-      outjonck <- jonckheere.test(x= y, g= x, alternative = hyp)
+      outjonck <- jonckheere.test(x= y, g = x, alternative = hyp)
       statistic <- broom::glance(outjonck)
       out <- list(dt=NULL, statistic = statistic, parameter = NULL, comparison=NULL)
     }  
