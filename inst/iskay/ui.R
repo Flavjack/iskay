@@ -7,7 +7,14 @@ library(dplyr)
 library(exactRankTests)
 library(broom)
 library(clinfun)
+library(purrr)
+library(htmlwidgets)
+library(htmltools)
 library(radarchart)
+ library(plotly)
+ library(V8)
+ library(shinyjs)
+library(stringr)
 data("skills")
 
 ui <- dashboardPage(
@@ -103,20 +110,20 @@ ui <- dashboardPage(
                               
                      ),
                      
-                     menuItem("Categorical Analysis", icon=icon("th-list"),
-                              
-                              
-                              #menuItem("Correlation",
-                              menuSubItem("Contingency Table", tabName = "contingencyTab", icon = icon("file")),
-                              menuSubItem("Correlation", tabName = "correlationTab", icon = icon("file"))
-                              
-                              #menuSubItem("Open fieldbook", tabName = "openFieldbook", icon = icon("file-o")),
-                              #menuSubItem("Check fieldbook", tabName = "checkFieldbook", icon = icon("eraser")),
-                              #menuSubItem("Data transformation", tabName = "singleAnalysisTrans", icon = icon("file-text-o"))
-                              #) 
-                              
-                              
-                     ),
+                     # menuItem("Categorical Analysis", icon=icon("th-list"),
+                     #          
+                     #          
+                     #          #menuItem("Correlation",
+                     #          menuSubItem("Contingency Table", tabName = "contingencyTab", icon = icon("file")),
+                     #          menuSubItem("Correlation", tabName = "correlationTab", icon = icon("file"))
+                     #          
+                     #          #menuSubItem("Open fieldbook", tabName = "openFieldbook", icon = icon("file-o")),
+                     #          #menuSubItem("Check fieldbook", tabName = "checkFieldbook", icon = icon("eraser")),
+                     #          #menuSubItem("Data transformation", tabName = "singleAnalysisTrans", icon = icon("file-text-o"))
+                     #          #) 
+                     #          
+                     #          
+                     # ),
                      
                      
                      menuItem("GraphLab", icon=icon("th-list"),
@@ -142,7 +149,11 @@ ui <- dashboardPage(
     
     #includeCSS("www/custom.css"),
     
+    shinyjs::useShinyjs(),
+    shinyjs::extendShinyjs(text = "shinyjs.refresh = function() { location.reload(); }"),
+    
     tabItems(
+      
       
       shinydashboard::tabItem(tabName = "timportData",
                               includeCSS("www/custom.css"),
@@ -417,7 +428,7 @@ ui <- dashboardPage(
                                        
                                        box(#begin inputs box durbin
                                          title = "Durbin Test", status = "primary", solidHeader = TRUE,
-                                         collapsible = TRUE, width = NULL,height = 500,
+                                         collapsible = TRUE, width = 12,height = 500,
                                          
                                          uiOutput("ou_jugdurbin"),
                                          uiOutput("ou_trtdurbin"),
@@ -442,7 +453,7 @@ ui <- dashboardPage(
                                          
                                          box(#begin inputs box durbin
                                            title = "Descriptive statistics", status = "primary", solidHeader = TRUE,
-                                           collapsible = TRUE, width = 12,
+                                           collapsible = TRUE, width = NULL,
                                            
                                            div(DT::dataTableOutput("ou_dtdurbin_gsum"))
                                          )
@@ -454,7 +465,7 @@ ui <- dashboardPage(
                                       
                                        box(#begin inputs box durbin
                                            title = "Multiple comparison", status = "primary", solidHeader = TRUE,
-                                           collapsible = TRUE, width = 12,
+                                           collapsible = TRUE, width = NULL,
                                           DT::dataTableOutput("ou_dtdurbin")
                                         )
                                       ),
@@ -463,7 +474,7 @@ ui <- dashboardPage(
                                         condition = "input.cbTables_durbin.includes('pcom')",
                                         box(#begin inputs box durbin
                                             title = "Paired comparison", status = "primary", solidHeader = TRUE,
-                                            collapsible = TRUE, width = 12,
+                                            collapsible = TRUE, width = NULL,
                                             DT::dataTableOutput("ou_dtdurbin_pcom")
                                         )
                                       )
@@ -700,8 +711,9 @@ ui <- dashboardPage(
                                          collapsible = TRUE, width = 12, height = 500,
                                          
                                          uiOutput("ou_trtRadar"),
+                                         #uiOutput("ou_lvlRadar"),
                                          uiOutput("ou_traitRadar"),
-                                         uiOutput("ou_lvlRadar")
+                                         actionButton("go", "Plot!")
                                          
                                          
                                        ) #end box wilcoxon
@@ -712,11 +724,13 @@ ui <- dashboardPage(
                                        # condition = "input.cbTables_wilcox2.includes('gsum')",
 
                                          box(#begin inputs box wilcox2
-                                           title = "Descriptive statistics", status = "primary", solidHeader = TRUE,
+                                           title = "Radar Chart", status = "primary", solidHeader = TRUE,
                                            collapsible = TRUE, width = 12,
 
-                                           #DT::dataTableOutput("ou_dtwilcox2")#,
-                                          chartJSRadarOutput("radar", width = "450", height = "300")
+                                           DT::dataTableOutput("omar"),
+                                           br(),
+                                           br(),
+                                          chartJSRadarOutput("ui_radar", width = "450", height = "300")
                                          )
 
                                        #)#, #end conditionalPanel for wilcox2

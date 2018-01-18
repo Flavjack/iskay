@@ -201,10 +201,11 @@ test_analysis <- function(x , y, hyp, param, jud, test = "friedman", sg = 0.05, 
     
     dt <- dplyr::left_join(outmed, pwmed, by="Treatment")
     
-    statistic <- outmed$statistics
-    parameter <- outmed$parameters
+    statistic <- out$statistics
+    parameter <- out$parameters
     comparison <- out$comparison 
-    comparison <- iskay::rename_tables(comparison, c("Treatments","Median","Chisq","P-value.","Sig.")) %>% 
+    comparison <- comparison %>% tibble::rownames_to_column() %>% 
+                  iskay::rename_tables(c("Treatments","Median","Chisq","P-value.","Sig.")) %>% 
                   as.data.frame()
     
     out <- list(dt= dt, statistic = statistic, parameter = parameter, comparison= comparison)
