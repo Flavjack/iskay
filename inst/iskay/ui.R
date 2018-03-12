@@ -75,13 +75,13 @@ ui <- dashboardPage(
                      
                      menuItem("Non-Parametric Test", icon = icon("th-list"),
                               
-                              menuItem("One Sample",
-                                       menuSubItem("Wilcoxon", tabName = "twilcoxon1Tab", icon = icon("table"))
-                                       #menuSubItem("Clone list", tabName = "generateList", icon = icon("list")),
-                                       #menuSubItem("Family list", tabName = "createList", icon = icon("list-alt")) ,
-                                       #menuSubItem("Parental list", tabName = "parentList", icon = icon("list-alt")),
-                                       #menuSubItem("Distribution Data", tabName = "distributionDB", icon = icon("database"))
-                              ),
+                              # menuItem("One Sample",
+                              #          menuSubItem("Wilcoxon", tabName = "twilcoxon1Tab", icon = icon("table"))
+                              #          #menuSubItem("Clone list", tabName = "generateList", icon = icon("list")),
+                              #          #menuSubItem("Family list", tabName = "createList", icon = icon("list-alt")) ,
+                              #          #menuSubItem("Parental list", tabName = "parentList", icon = icon("list-alt")),
+                              #          #menuSubItem("Distribution Data", tabName = "distributionDB", icon = icon("database"))
+                              # ),
                               
                               menuItem("Two Sample",
                                        menuSubItem("Man-Whitney", tabName = "tmanwithneyTab", icon = icon("file")),
@@ -130,8 +130,8 @@ ui <- dashboardPage(
                               
                               
                               menuItem("Visualization tools",
-                                       menuSubItem("Radar plot", tabName = "tradargrTab", icon = icon("file"))
-                                       #menuSubItem("Open fieldbook", tabName = "openFieldbook", icon = icon("file-o")),
+                                       menuSubItem("Radar plot", tabName = "tradargrTab", icon = icon("file")),
+                                       menuSubItem("Scatter plot", tabName = "tscatterTab", icon = icon("file-o"))
                                        #menuSubItem("Check fieldbook", tabName = "checkFieldbook", icon = icon("eraser")),
                                        #menuSubItem("Data transformation", tabName = "singleAnalysisTrans", icon = icon("file-text-o"))
                               ) 
@@ -517,17 +517,17 @@ ui <- dashboardPage(
                                 ),
                                 column(width = 9, 
                                        
-                                       conditionalPanel(
-                                         condition = "input.cbTables_kru.includes('gsum')",
+                                      # conditionalPanel(
+                                       #  condition = "input.cbTables_kru.includes('gsum')",
                                          
-                                         box(#begin inputs box kruskal wallis
-                                           title = "Descriptive statistics", status = "primary", solidHeader = TRUE,
-                                           collapsible = TRUE, width = 12,
-                                           
-                                           div(DT::dataTableOutput("ou_dtkru_gsum"))
-                                         )
+                                         # box(#begin inputs box kruskal wallis
+                                         #   title = "Descriptive statistics", status = "primary", solidHeader = TRUE,
+                                         #   collapsible = TRUE, width = 12,
+                                         #   
+                                         #   div(DT::dataTableOutput("ou_dtkru_gsum"))
+                                         # )
                                          
-                                       ), #end conditionalPanel for kruskal
+                                      # ), #end conditionalPanel for kruskal
                                     
                                     conditionalPanel(
                                          condition = "input.cbTables_kru.includes('mulcom')",
@@ -727,7 +727,7 @@ ui <- dashboardPage(
                                            title = "Radar Chart", status = "primary", solidHeader = TRUE,
                                            collapsible = TRUE, width = 12,
 
-                                           DT::dataTableOutput("omar"),
+                                           DT::dataTableOutput("ou_dtradar"),
                                            br(),
                                            br(),
                                           chartJSRadarOutput("ui_radar", width = "450", height = "300")
@@ -750,10 +750,72 @@ ui <- dashboardPage(
                                 )
                                 
                               )    #end fluidrow 
+      ), #end tab   
+      
+      
+      #---------------------------------------------------------------------------------------
+      
+      
+      #tab for graphics: radar plot   -------------------------------------------------------------     
+      
+      shinydashboard::tabItem(tabName = "tscatterTab",
+                              #h2("wilcoxon Test"),
+                              
+                              fluidRow( #begin fluid row
+                                column(width = 3, 
+                                       
+                                       box(#begin inputs box wilcoxon
+                                         title = "Variables", status = "primary", solidHeader = TRUE,
+                                         collapsible = TRUE, width = 12, height = 500,
+                                         
+                                         #uiOutput("ou_trtScatter"),
+                                         #uiOutput("ou_lvlRadar"),
+                                         uiOutput("ou_XtraitScatter"),
+                                         uiOutput("ou_YtraitScatter"),
+                                         uiOutput("ou_colorScatter")
+                                         #actionButton("go", "Plot!")
+                                         
+                                         
+                                       ) #end box wilcoxon
+                                ),
+                                column(width = 9,
+                                       
+                                       #conditionalPanel(
+                                       # condition = "input.cbTables_wilcox2.includes('gsum')",
+                                       
+                                       box(#begin inputs box wilcox2
+                                         title = "Scatter plot", status = "primary", solidHeader = TRUE,
+                                         collapsible = TRUE, width = 12,
+                                         
+                                         plotlyOutput('trendPlot', height = "900px")
+                                         
+                                       )
+                                       
+                                       #)#, #end conditionalPanel for wilcox2
+                                       
+                                       # conditionalPanel(
+                                       #   condition = "input.cbTables_wilcox2.includes('mulcom')",
+                                       #
+                                       #
+                                       #   box(#begin inputs box wilcox2
+                                       #     title = "Hypothesis testing", status = "primary", solidHeader = TRUE,
+                                       #     collapsible = TRUE, width = 12,
+                                       #
+                                       #     DT::dataTableOutput("ou_dtwilcox2")#,
+                                       #
+                                       #   )#,
+                                       # )
+                                )
+                                
+                              )    #end fluidrow 
       ) #end tab   
       
       
       #---------------------------------------------------------------------------------------
+      
+      
+      
+      
       
       
     ),

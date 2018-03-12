@@ -1307,8 +1307,6 @@ server_iskay <- function(input, output, session) {
     
   })
   
-
-  
   observeEvent(input$go,{
       req(input$sel_input_trtradar)
       #req(input$sel_input_lvlradar)
@@ -1324,12 +1322,12 @@ server_iskay <- function(input, output, session) {
       aku
    })
   
-  output$omar <- DT::renderDataTable({
+  output$ou_dtradar <- DT::renderDataTable({
                   dt <- radar_data()
                   DT::datatable(dt)
                 })  
 
-  # 
+  
   observe({
 
     #After all this conditions has been made, the submit button will appear to save the information
@@ -1356,9 +1354,76 @@ server_iskay <- function(input, output, session) {
     }
     
   })  
+
+  
+  # Scatter plot ------------------------------------------------------------
+    
+  output$ou_XtraitScatter <- renderUI({
+    
+    req(input$uin_fb_import)
+    #req(input$sel_input_sheet)
+    fb_cols <- names(importData())
+    shiny::selectizeInput(inputId = "sel_input_Xscatter", label = "Select trait X", 
+                          choices = fb_cols,  width = NULL,multiple=TRUE,
+                          options = list(
+                            placeholder = 'Select variable X',
+                            onInitialize = I('function() { this.setValue(""); }')
+                          )
+    )
+    
+  })
+  
+  output$ou_YtraitScatter <- renderUI({
+    
+    req(input$uin_fb_import)
+    #req(input$sel_input_sheet)
+    fb_cols <- names(importData())
+    shiny::selectizeInput(inputId = "sel_input_Yscatter", label = "Select trait Y", 
+                          choices = fb_cols,  width = NULL,multiple=TRUE,
+                          options = list(
+                            placeholder = 'Select variable Y',
+                            onInitialize = I('function() { this.setValue(""); }')
+                          )
+    )
+    
+  })
+  
+  output$ou_colorScatter <- renderUI({
+    
+    req(input$uin_fb_import)
+    #req(input$sel_input_sheet)
+    fb_cols <- names(importData())
+    shiny::selectizeInput(inputId = "sel_input_colorscatter", label = "Select color", 
+                          choices = fb_cols,  width = NULL,multiple=TRUE,
+                          options = list(
+                            placeholder = 'Select color',
+                            onInitialize = I('function() { this.setValue(""); }')
+                          )
+    )
+    
+  })
+  
+  
+    
+  output$trendPlot <- renderPlotly({
+    dataset <<- importData()
+    # build graph with ggplot syntax
+    p <- ggplot(dataset, aes_string(x = input$sel_input_Xscatter, y = input$sel_input_Yscatter, color = input$sel_input_colorscatter)) + 
+      geom_point()
+    
+    # if at least one facet column/row is specified, add it
+    #facets <- paste(input$facet_row, '~', input$facet_col)
+    #if (facets != '. ~ .') p <- p + facet_grid(facets)
+    
+     ggplotly(p) %>% 
+       layout(height = input$plotHeight, autosize=TRUE)
+    
+    })
   
   
   
 } #end server_iskay
+
+
 
 

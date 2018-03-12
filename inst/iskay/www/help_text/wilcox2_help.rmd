@@ -1,5 +1,20 @@
-The Friedman test is a non-parametric alternative to the ANOVA with two factors where the assumption of normality is not acceptable. It is used to test if k paired samples (k>2) of size n, come from the same population or from populations having identical properties as regards the position parameter. As the context is often that of the ANOVA with two factors, we sometimes speak of the Friedman test with k treatments and n blocks.
+### Definition
 
-Use the Friedman's test when you have k paired samples corresponding to k treatments concerning the same blocks, in order to illustrate a difference between the treatments.
+The Wilcoxon signed-rank test is a non-parametric statistical hypothesis test used when comparing two related samples, matched samples, or repeated measurements on a single sample to assess whether their population mean ranks differ (i.e. it is a paired difference test)
 
-`Friedman, Milton. 1937`. “The Use of Ranks to Avoid the Assumption of Normality Implicit in the Analysis of Variance.” Journal of the American Statistical Association 32 (200): 675–701.
+### Inputs
+
+
+1. `Variable X`: independent or explanatory variable
+
+2. `Treatments`: dependent or respones variable
+
+3. `Hyphotesis`: insert trait or variable measured. 
+
+4. `Mean value`: insert the mean that you want to compare.
+
+
+
+### References
+
+`David F. Bauer (1972)`. Constructing confidence sets using rank statistics. Journal of the American Statistical Association 67, 687–690.

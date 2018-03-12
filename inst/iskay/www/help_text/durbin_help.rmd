@@ -1,9 +1,16 @@
 
 ## Description
 
-A multiple comparison of the Durbin test for the balanced incomplete blocks for sensorial or categorical evaluation.
-It forms groups according to the demanded ones for level of significance (alpha); by default, 0.05.
+The Durbin test is a nonparametric test for balanced incomplete designs that reduces to the Friedman test in the case of a complete block design.
+
+## Inputs
+
+1. `Judges`: insert the judges' column.
+
+2. `Treatments`: insert treatment's column.
+
+3. `Traits`: insert trait or variable measured. 
 
 ## Reference
- 
+
 `Myles Hollander, Douglas Wolfe, Eric Chicken 1942`. Nonparametric Statistical Methods. 

@@ -1,5 +1,17 @@
-The Friedman test is a non-parametric alternative to the ANOVA with two factors where the assumption of normality is not acceptable. It is used to test if k paired samples (k>2) of size n, come from the same population or from populations having identical properties as regards the position parameter. As the context is often that of the ANOVA with two factors, we sometimes speak of the Friedman test with k treatments and n blocks.
+### Definition
 
-Use the Friedman's test when you have k paired samples corresponding to k treatments concerning the same blocks, in order to illustrate a difference between the treatments.
+In statistics, the Mann–Whitney U test (also called the Mann–Whitney–Wilcoxon (MWW), Wilcoxon rank-sum test, or Wilcoxon–Mann–Whitney test) is a nonparametric test of the null hypothesis that it is equally likely that a randomly selected value from one sample will be less than or greater than a randomly selected value from a second sample.
 
-`Friedman, Milton. 1937`. “The Use of Ranks to Avoid the Assumption of Normality Implicit in the Analysis of Variance.” Journal of the American Statistical Association 32 (200): 675–701.
+### Inputs
+
+1. `Variable X`: independent or explanatory variable
+
+2. `Treatments`: dependent or respones variable
+
+3. `Hyphotesis`: insert trait or variable measured. 
+
+4. `Mean value`: insert the mean that you want to compare.
+
+### References
+
+`Corder, G.W.; Foreman, D.I. (2014)`. Nonparametric Statistics: A Step-by-Step Approach. Wiley. ISBN 978-1118840313.
